@@ -9,6 +9,33 @@ import (
 	"time"
 )
 
+// Display resolution
+const EPD_WIDTH = 296
+const EPD_HEIGHT = 122
+
+// EPD2IN9 commands
+const DRIVER_OUTPUT_CONTROL = 0x01
+const BOOSTER_SOFT_START_CONTROL = 0x0C
+const GATE_SCAN_START_POSITION = 0x0F
+const DEEP_SLEEP_MODE = 0x10
+const DATA_ENTRY_MODE_SETTING = 0x11
+const SW_RESET = 0x12
+const TEMPERATURE_SENSOR_CONTROL = 0x1A
+const MASTER_ACTIVATION = 0x20
+const DISPLAY_UPDATE_CONTROL_1 = 0x21
+const DISPLAY_UPDATE_CONTROL_2 = 0x22
+const WRITE_RAM = 0x24
+const WRITE_VCOM_REGISTER = 0x2C
+const WRITE_LUT_REGISTER = 0x32
+const SET_DUMMY_LINE_PERIOD = 0x3A
+const SET_GATE_TIME = 0x3B
+const BORDER_WAVEFORM_CONTROL = 0x3C
+const SET_RAM_X_ADDRESS_START_END_POSITION = 0x44
+const SET_RAM_Y_ADDRESS_START_END_POSITION = 0x45
+const SET_RAM_X_ADDRESS_COUNTER = 0x4E
+const SET_RAM_Y_ADDRESS_COUNTER = 0x4F
+const TERMINATE_FRAME_READ_WRITE = 0xFF
+
 // ErrInvalidImageSize is returned if the given image bounds doesn't fit into display bounds
 var ErrInvalidImageSize = errors.New("invalid image size")
 
@@ -41,40 +68,18 @@ const (
 
 // fullUpdate is a lookup table used whilst in full update mode
 var fullUpdate = []byte{
-	0x80, 0x60, 0x40, 0x00, 0x00, 0x00, 0x00, //LUT0: BB:     VS 0 ~7
-	0x10, 0x60, 0x20, 0x00, 0x00, 0x00, 0x00, //LUT1: BW:     VS 0 ~7
-	0x80, 0x60, 0x40, 0x00, 0x00, 0x00, 0x00, //LUT2: WB:     VS 0 ~7
-	0x10, 0x60, 0x20, 0x00, 0x00, 0x00, 0x00, //LUT3: WW:     VS 0 ~7
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT4: VCOM:   VS 0 ~7
-
-	0x03, 0x03, 0x00, 0x00, 0x02, // TP0 A~D RP0
-	0x09, 0x09, 0x00, 0x00, 0x02, // TP1 A~D RP1
-	0x03, 0x03, 0x00, 0x00, 0x02, // TP2 A~D RP2
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP3 A~D RP3
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP4 A~D RP4
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP5 A~D RP5
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP6 A~D RP6
-
-	0x15, 0x41, 0xA8, 0x32, 0x30, 0x0A,
+	0x02, 0x02, 0x01, 0x11, 0x12, 0x12, 0x22, 0x22,
+	0x66, 0x69, 0x69, 0x59, 0x58, 0x99, 0x99, 0x88,
+	0x00, 0x00, 0x00, 0x00, 0xF8, 0xB4, 0x13, 0x51,
+	0x35, 0x51, 0x51, 0x19, 0x01, 0x00,
 }
 
 // partialUpdate is a lookup table used whilst in partial update mode
 var partialUpdate = []byte{ //20 bytes
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT0: BB:     VS 0 ~7
-	0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT1: BW:     VS 0 ~7
-	0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT2: WB:     VS 0 ~7
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT3: WW:     VS 0 ~7
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT4: VCOM:   VS 0 ~7
-
-	0x0A, 0x00, 0x00, 0x00, 0x00, // TP0 A~D RP0
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP1 A~D RP1
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP2 A~D RP2
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP3 A~D RP3
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP4 A~D RP4
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP5 A~D RP5
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP6 A~D RP6
-
-	0x15, 0x41, 0xA8, 0x32, 0x30, 0x0A,
+	0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 }
 
 // EPD defines the base type for the e-paper display driver
@@ -89,19 +94,19 @@ type EPD struct {
 	cs   WriteablePin // for chip select signal; this pin is active low
 	busy ReadablePin  // for reading in busy signal
 
+	lut []byte
+
 	// SPI transmitter
 	transmit Transmit
 }
 
 // New creates a new EPD device driver
 func New(rst, dc, cs WriteablePin, busy ReadablePin, transmit Transmit) *EPD {
-	return &EPD{250, 122, rst, dc, cs, busy, transmit}
+	return &EPD{EPD_HEIGHT, EPD_WIDTH, rst, dc, cs, busy, fullUpdate, transmit}
 }
 
 // reset resets the display back to defaults
 func (epd *EPD) reset() {
-	epd.rst.High()
-	time.Sleep(200 * time.Millisecond)
 	epd.rst.Low()
 	time.Sleep(5 * time.Millisecond)
 	epd.rst.High()
@@ -142,40 +147,37 @@ func (epd *EPD) Mode(mode Mode) {
 	// command+data below is taken from the python sample driver
 
 	// DRIVER_OUTPUT_CONTROL
-	epd.command(0x01)
+	epd.command(DRIVER_OUTPUT_CONTROL)
 	epd.data(byte((epd.Height - 1) & 0xFF))
 	epd.data(byte(((epd.Height - 1) >> 8) & 0xFF))
 	epd.data(0x00)
 
 	// BOOSTER_SOFT_START_CONTROL
-	epd.command(0x0C)
+	epd.command(BOOSTER_SOFT_START_CONTROL)
 	epd.data(0xD7)
 	epd.data(0xD6)
 	epd.data(0x9D)
 
 	// WRITE_VCOM_REGISTER
-	epd.command(0x2C)
+	epd.command(WRITE_VCOM_REGISTER)
 	epd.data(0xA8)
 
 	// SET_DUMMY_LINE_PERIOD
-	epd.command(0x3A)
+	epd.command(SET_DUMMY_LINE_PERIOD)
 	epd.data(0x1A)
 
 	// SET_GATE_TIME
-	epd.command(0x3B)
+	epd.command(SET_GATE_TIME)
 	epd.data(0x08)
 
 	// DATA_ENTRY_MODE_SETTING
-	epd.command(0x11)
+	epd.command(DATA_ENTRY_MODE_SETTING)
 	epd.data(0x03)
 
 	// WRITE_LUT_REGISTER
-	epd.command(0x32)
-	var lut = fullUpdate
-	if mode == PartialUpdate {
-		lut = partialUpdate
-	}
-	for _, b := range lut {
+	epd.command(WRITE_LUT_REGISTER)
+
+	for _, b := range epd.lut {
 		epd.data(b)
 	}
 }
@@ -185,44 +187,41 @@ func (epd *EPD) Mode(mode Mode) {
 // Waveshare recommends putting the device in "deep sleep" mode (or disconnect from power)
 // if doesn't need updating/refreshing.
 func (epd *EPD) Sleep() {
-	epd.command(0x10)
-	epd.data(0x01)
+	epd.command(DEEP_SLEEP_MODE)
+	epd.idle()
 }
 
 // turnOnDisplay activates the display and renders the image that's there in the device's RAM
 func (epd *EPD) turnOnDisplay() {
-	epd.command(0x22)
-	epd.data(0xC7)
-	epd.command(0x20)
-	epd.idle()
-}
-
-func (epd *EPD) turnOnDisplayPart() {
-	epd.command(0x22)
-	epd.data(0x0C)
-	epd.command(0x20)
+	// epd.command(0x22)
+	// epd.data(0xC7)
+	// epd.command(0x20)
+	epd.command(DISPLAY_UPDATE_CONTROL_2)
+	epd.data(0xC4)
+	epd.command(MASTER_ACTIVATION)
+	epd.command(TERMINATE_FRAME_READ_WRITE)
 	epd.idle()
 }
 
 // window sets the window plane used by device when drawing the image in the buffer
-func (epd *EPD) window(x0, x1 byte, y0, y1 uint16) {
-	epd.command(0x44)
-	epd.data((x0 >> 3) & 0xFF)
-	epd.data((x1 >> 3) & 0xFF)
+func (epd *EPD) window(x_start, x_end byte, y_start, y_end uint16) {
+	epd.command(SET_RAM_X_ADDRESS_START_END_POSITION)
+	epd.data((x_start >> 3) & 0xFF)
+	epd.data((x_end >> 3) & 0xFF)
 
-	epd.command(0x45)
-	epd.data(byte(y0 & 0xFF))
-	epd.data(byte((y0 >> 8) & 0xFF))
-	epd.data(byte(y1 & 0xFF))
-	epd.data(byte((y1 >> 8) & 0xFF))
+	epd.command(SET_RAM_Y_ADDRESS_START_END_POSITION)
+	epd.data(byte(y_start & 0xFF))
+	epd.data(byte((y_start >> 8) & 0xFF))
+	epd.data(byte(y_end & 0xFF))
+	epd.data(byte((y_end >> 8) & 0xFF))
 }
 
 // cursor sets the cursor position in the device window frame
 func (epd *EPD) cursor(x uint8, y uint16) {
-	epd.command(0x4E)
+	epd.command(SET_RAM_X_ADDRESS_COUNTER)
 	epd.data((x >> 3) & 0xFF)
 
-	epd.command(0x4F)
+	epd.command(SET_RAM_Y_ADDRESS_COUNTER)
 	epd.data(byte(y & 0xFF))
 	epd.data(byte((y >> 8) & 0xFF))
 
@@ -240,31 +239,52 @@ func (epd *EPD) Clear(c color.Color) {
 
 // Draw renders the given image onto the display
 func (epd *EPD) Draw(img image.Image) error {
-	var isvertical = img.Bounds().Size().X == epd.Width && img.Bounds().Size().Y == epd.Height
-	var _, uniform = img.(*image.Uniform) // special case for uniform images which have infinite bound
-	if !uniform && !isvertical {
-		return ErrInvalidImageSize
-	}
+	// var isvertical = img.Bounds().Size().X == epd.Width && img.Bounds().Size().Y == epd.Height
+	// var _, uniform = img.(*image.Uniform) // special case for uniform images which have infinite bound
+	// if !uniform && !isvertical {
+	// 	return ErrInvalidImageSize
+	// }
+
+	// epd.window(0, byte(epd.Width-1), 0, uint16(epd.Height-1))
+	// for i := 0; i < epd.Height; i++ {
+	// 	epd.cursor(0, uint16(i))
+	// 	epd.command(0x24) // WRITE_RAM
+	// 	for j := 0; j < epd.Width; j += 8 {
+	// 		// this loop converts individual pixels into a single byte
+	// 		// 8-pixels at a time and then sends that byte to render
+	// 		var b = 0xFF
+	// 		for px := 0; px < 8; px++ {
+	// 			var pixel = img.At(j+px, i)
+	// 			if isdark(pixel.RGBA()) {
+	// 				b &= ^(0x80 >> (px % 8))
+	// 			}
+	// 		}
+	// 		epd.data(byte(b))
+	// 	}
+	// }
+	// epd.turnOnDisplay()
+	// return nil
 
 	epd.window(0, byte(epd.Width-1), 0, uint16(epd.Height-1))
-	for i := 0; i < epd.Height; i++ {
-		epd.cursor(0, uint16(i))
-		epd.command(0x24) // WRITE_RAM
-		for j := 0; j < epd.Width; j += 8 {
-			// this loop converts individual pixels into a single byte
-			// 8-pixels at a time and then sends that byte to render
-			var b = 0xFF
-			for px := 0; px < 8; px++ {
-				var pixel = img.At(j+px, i)
-				if isdark(pixel.RGBA()) {
-					b &= ^(0x80 >> (px % 8))
-				}
+	epd.cursor(0, 0)
+	epd.command(WRITE_RAM)
+	var b byte = 0x00
+	for j := 0; j < epd.Height; j++ {
+		for i := 0; i < epd.Width; i++ {
+			var pixel = img.At(j, i)
+			if isdark(pixel.RGBA()) {
+				b |= 0x80 >> (i % 8)
 			}
-			epd.data(byte(b))
+			if i%8 == 7 {
+				epd.data(b)
+				b = 0x00
+			}
 		}
+
 	}
-	epd.turnOnDisplay()
+
 	return nil
+
 }
 
 // isdark is a utility method which returns true if the pixel color is considered dark else false

@@ -6,6 +6,7 @@ require gobot.io/x/gobot v1.16.0
 
 require (
 	github.com/fogleman/gg v1.3.0 // indirect
+	github.com/gen2brain/aac-go v0.0.0-20230119102159-ef1e76509d21 // indirect
 	github.com/gen2brain/malgo v0.11.10 // indirect
 	github.com/go-audio/audio v1.0.0 // indirect
 	github.com/go-audio/riff v1.0.0 // indirect
@@ -18,5 +19,8 @@ require (
 	github.com/stianeikeland/go-rpio v4.2.0+incompatible // indirect
 	github.com/stianeikeland/go-rpio/v4 v4.6.0 // indirect
 	github.com/yelinaung/wifi-name v0.0.0-20181205043121-60d8acb81b8f // indirect
+	github.com/youpy/go-riff v0.1.0 // indirect
+	github.com/youpy/go-wav v0.3.2 // indirect
+	github.com/zaf/g711 v0.0.0-20190814101024-76a4a538f52b // indirect
 	golang.org/x/image v0.8.0 // indirect
 )

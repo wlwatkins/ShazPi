@@ -9,8 +9,7 @@ import (
 	"shazammini/src/structs"
 
 	"github.com/gen2brain/malgo"
-	"github.com/go-audio/audio"
-	"github.com/go-audio/wav"
+	"github.com/youpy/go-wav"
 	"gobot.io/x/gobot"
 )
 
@@ -27,10 +26,19 @@ func byteSliceToInt16Slice(data []byte) []int16 {
 	return result
 }
 
-func int16SliceToIntSlice(data []int16) []int {
-	result := make([]int, len(data))
+func int16SliceToByteSlice(data []int16) []byte {
+	buf := new(bytes.Buffer)
+	for _, value := range data {
+		if err := binary.Write(buf, binary.LittleEndian, value); err != nil {
+			log.Fatal(err)
+		}
+	}
+	return buf.Bytes()
+}
+func int16SliceToSampleSlice(data []int16) []wav.Sample {
+	result := make([]wav.Sample, len(data))
 	for i, value := range data {
-		result[i] = int(value)
+		result[i] = wav.Sample{Values: [2]int{int(value) * 2, 0}}
 	}
 	return result
 }
@@ -41,6 +49,8 @@ func run(commChannels *structs.CommChannels) {
 	deviceConfig.Capture.Channels = 1
 	deviceConfig.SampleRate = 44100
 	deviceConfig.Alsa.NoMMap = 1
+	deviceConfig.Periods = 4
+	deviceConfig.PeriodSizeInFrames = 256
 
 	context, err := malgo.InitContext(nil, malgo.ContextConfig{}, func(message string) {
 		log.Println(message)
@@ -74,6 +84,7 @@ func run(commChannels *structs.CommChannels) {
 
 	log.Println("Press Enter to stop recording...")
 	fmt.Scanln()
+	log.Println("Saving to file..")
 
 	err = device.Stop()
 	if err != nil {
@@ -86,17 +97,11 @@ func run(commChannels *structs.CommChannels) {
 	}
 	defer f.Close()
 
-	e := wav.NewEncoder(f, int(deviceConfig.SampleRate), int(deviceConfig.Capture.Channels), int(deviceConfig.Capture.Format), 1)
-	buf := &audio.IntBuffer{Data: int16SliceToIntSlice(capturedAudio), Format: &audio.Format{
-		NumChannels: int(deviceConfig.Capture.Channels),
-		SampleRate:  int(deviceConfig.SampleRate),
-	}}
-	if err := e.Write(buf); err != nil {
+	waveWriter := wav.NewWriter(f, uint32(len(capturedAudio)), 1, 44100, 16)
+	if err := waveWriter.WriteSamples(int16SliceToSampleSlice(capturedAudio)); err != nil {
 		log.Fatal(err)
 	}
-	if err := e.Close(); err != nil {
-		log.Fatal(err)
-	}
+
 }
 
 func Microphone(commChannels *structs.CommChannels) *gobot.Robot {

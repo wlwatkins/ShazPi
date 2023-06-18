@@ -3,7 +3,8 @@ package main
 import (
 
 	// "shazammini/src/microphone"
-	"shazammini/src/microphone"
+
+	"shazammini/src/display"
 	"shazammini/src/structs"
 
 	"gobot.io/x/gobot"
@@ -17,14 +18,14 @@ func main() {
 		RecordChannel: make(chan bool),
 	}
 
-	mic := microphone.Microphone(&commCahnnels)
+	// mic := microphone.Microphone(&commCahnnels)
 	// com := commands.Commands(&commCahnnels)
-	// dis := display.Screen(&commCahnnels)
+	dis := display.Screen(&commCahnnels)
 	// api := api.Api(&commCahnnels)
 
 	// master.AddRobot(api)
-	master.AddRobot(mic)
-	// master.AddRobot(dis)
+	// master.AddRobot(mic)
+	master.AddRobot(dis)
 	// master.AddRobot(com)
 
 	master.Start()

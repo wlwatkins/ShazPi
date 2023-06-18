@@ -5,10 +5,10 @@ import (
 	"image/color"
 	"log"
 	"net"
+	"os"
 	"shazammini/src/structs"
 	"shazammini/src/utilities"
 	"strings"
-	"time"
 
 	"github.com/fogleman/gg"
 	"github.com/stianeikeland/go-rpio/v4"
@@ -65,8 +65,8 @@ func (d *Display) Initialise() {
 	d.epd.Mode(FullUpdate)
 
 	d.img = gg.NewContext(d.epd.Width, d.epd.Height)
-	d.img.Rotate(PI / 2)
-	d.img.Translate(0, -float64(d.epd.Width))
+	d.img.RotateAbout(PI/2, 0, 0)
+	d.img.Translate(float64(d.epd.Height), 0)
 
 	d.img.SetColor(color.White)
 	d.img.Clear()
@@ -78,7 +78,7 @@ func (d *Display) Welcome() {
 	}
 
 	d.img.SetColor(color.Black)
-	d.img.DrawStringAnchored("Loading", float64(d.epd.Height)/2, float64(d.epd.Width)/2, 0.5, 0.5)
+	d.img.DrawStringAnchored("ShazPi", float64(d.epd.Height)/2, float64(d.epd.Width)/2, 0.5, 0.5)
 	d.img.Stroke()
 	d.draw()
 	d.img.SetColor(color.White)
@@ -127,26 +127,46 @@ func (d *Display) CheckConnection() {
 	d.img.Fill()
 }
 
+func (d *Display) drawRectangle(s string, coord utilities.Coordonates) {
+
+	if err := d.img.LoadFontFace("/home/pi/dev/8-BIT_WONDER.TTF", 10); err != nil {
+		panic(err)
+	}
+
+	d.img.SetColor(color.Black)
+	d.img.DrawStringAnchored(s, float64(coord.X), float64(coord.Y), 0.5, 0.5)
+	// d.img.Fill()
+	d.img.Stroke()
+}
+
 func run(commChannels *structs.CommChannels) {
+
 	defer rpio.Close()
 
 	display := Display{}
 
 	display.Initialise()
-	display.Welcome()
-	display.loadAssets()
-	display.CheckConnection()
-	time.Sleep(2 * time.Second)
+	display.drawRectangle("A", utilities.Coordonates{X: display.epd.Width / 2, Y: display.epd.Height / 2})
+	display.drawRectangle("B", utilities.Coordonates{X: 20, Y: 20})
+	display.drawRectangle("C", utilities.Coordonates{X: display.epd.Width, Y: display.epd.Height / 2})
+	display.drawRectangle("00", utilities.Coordonates{X: 0, Y: 0})
+
+	// display.Welcome()
+	// display.loadAssets()
+	// display.CheckConnection()
+	// time.Sleep(2 * time.Second)
 	display.draw()
 
-	for {
-		select {
-		case <-commChannels.RecordChannel:
-			fmt.Println("Hello")
-		case <-commChannels.PlayChannel:
-			fmt.Println("Bye")
-		}
-	}
+	os.Exit(0)
+
+	// for {
+	// 	select {
+	// 	case <-commChannels.RecordChannel:
+	// 		fmt.Println("Hello")
+	// 	case <-commChannels.PlayChannel:
+	// 		fmt.Println("Bye")
+	// 	}
+	// }
 
 	// // initialize the driver
 
