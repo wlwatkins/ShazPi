@@ -1,7 +1,8 @@
 package main
 
 import (
-	"shazammini/src/commands"
+
+	// "shazammini/src/microphone"
 	"shazammini/src/microphone"
 	"shazammini/src/structs"
 
@@ -17,12 +18,14 @@ func main() {
 	}
 
 	mic := microphone.Microphone(&commCahnnels)
-	com := commands.Commands(&commCahnnels)
+	// com := commands.Commands(&commCahnnels)
+	// dis := display.Screen(&commCahnnels)
 	// api := api.Api(&commCahnnels)
 
 	// master.AddRobot(api)
 	master.AddRobot(mic)
-	master.AddRobot(com)
+	// master.AddRobot(dis)
+	// master.AddRobot(com)
 
 	master.Start()
 }
