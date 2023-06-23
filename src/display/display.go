@@ -61,8 +61,10 @@ type Display struct {
 }
 
 func (d *Display) Initialise() {
+
 	d.epd = New(rpio.Pin(RST_PIN), rpio.Pin(DC_PIN), rpio.Pin(CS_PIN), ReadablePinPatch{rpio.Pin(BUSY_PIN)}, rpio.SpiTransmit)
-	d.epd.Mode(FullUpdate)
+	config := Config{Height: 150, Width: 200, LogicalWidth: 200, Rotation: 0}
+	d.epd.Configure(config)
 
 	d.img = gg.NewContext(d.epd.Width, d.epd.Height)
 	d.img.RotateAbout(PI/2, 0, 0)
@@ -80,7 +82,7 @@ func (d *Display) Welcome() {
 	d.img.SetColor(color.Black)
 	d.img.DrawStringAnchored("ShazPi", float64(d.epd.Height)/2, float64(d.epd.Width)/2, 0.5, 0.5)
 	d.img.Stroke()
-	d.draw()
+	d.epd.Draw(d.img.Image())
 	d.img.SetColor(color.White)
 	d.img.Clear()
 }
@@ -95,16 +97,16 @@ func (d *Display) DrawPNG(e *EPDPNG) {
 	d.img.Fill()
 }
 
-func (d *Display) draw() {
-	// d.epd.Sleep()
-	// d.epd.Clear(color.White)
-	if e := d.epd.Draw(d.img.Image()); e != nil {
-		fmt.Printf("failed to draw: %v\n", e)
-		d.epd.Clear(color.White)
-	}
+// func (d *Display) draw() {
+// 	// d.epd.Sleep()
+// 	// d.epd.Clear(color.White)
+// 	if e := d.epd.Draw(d.img.Image()); e != nil {
+// 		fmt.Printf("failed to draw: %v\n", e)
+// 		d.epd.Clear(color.White)
+// 	}
 
-	// d.epd.Sleep()
-}
+// 	// d.epd.Sleep()
+// }
 
 func (d *Display) CheckConnection() {
 	if err := d.img.LoadFontFace("/home/pi/dev/8-BIT_WONDER.TTF", 10); err != nil {
@@ -155,7 +157,7 @@ func run(commChannels *structs.CommChannels) {
 	// display.loadAssets()
 	// display.CheckConnection()
 	// time.Sleep(2 * time.Second)
-	display.draw()
+	display.epd.Draw(display.img.Image())
 
 	os.Exit(0)
 
