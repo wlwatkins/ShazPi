@@ -240,7 +240,7 @@ func (s *spotifyAPI) SearchTrack(uri string) string {
 	}
 
 	req.Header.Add("content-type", "application/json")
-	req.Header.Add("Authorization", "Bearer BQDa_BbkR69pY6L-VU5Q32Ljlj1ZbWGJ7mVnpJh5Jd30Lmn81t0wo1unNwhAA2gMN-K9hTdn39BiXRXJtyaZMpl7VVM97ROwe2qyZYor6ExDOJTpkDtRvqbmbYx5t-DPdnApZYXoOj0mc2etrSIytt25g0cTpLPYd2u7MfRu3Y9ZDGspzpPtG7e1A5t53EMHMc299SX-rseEJCaQ1zWMlRe2ksnm2uCNRMWSi_uCbDBZhU-527fDccK6vYvmLwZgL88bWDm5")
+	req.Header.Add("Authorization", "Bearer "+s.token_search.AccessToken)
 	req.Header.Add("X-RapidAPI-Host", s.host)
 
 	res, err := http.DefaultClient.Do(req)
@@ -278,7 +278,7 @@ func (s *spotifyAPI) AddToPlaylist(trackUri string) {
 	if err != nil {
 		log.Fatalf("Could not get res %s", err)
 	}
-	req.Header.Set("Authorization", "Bearer BQDa_BbkR69pY6L-VU5Q32Ljlj1ZbWGJ7mVnpJh5Jd30Lmn81t0wo1unNwhAA2gMN-K9hTdn39BiXRXJtyaZMpl7VVM97ROwe2qyZYor6ExDOJTpkDtRvqbmbYx5t-DPdnApZYXoOj0mc2etrSIytt25g0cTpLPYd2u7MfRu3Y9ZDGspzpPtG7e1A5t53EMHMc299SX-rseEJCaQ1zWMlRe2ksnm2uCNRMWSi_uCbDBZhU-527fDccK6vYvmLwZgL88bWDm5")
+	req.Header.Set("Authorization", "Bearer "+s.token_login.AccessToken)
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)

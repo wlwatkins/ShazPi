@@ -1,4 +1,4 @@
-package utilities
+package display
 
 import "net/http"
 

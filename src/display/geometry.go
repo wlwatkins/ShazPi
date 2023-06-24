@@ -1,4 +1,4 @@
-package utilities
+package display
 
 type Coordonates struct {
 	X int

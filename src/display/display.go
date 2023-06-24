@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"shazammini/src/structs"
-	"shazammini/src/utilities"
 	"strings"
 
 	"github.com/fogleman/gg"
@@ -119,7 +118,7 @@ func (d *Display) CheckConnection() {
 		d.img.DrawStringAnchored("Ethernet", 230, 10, 1, 0.5)
 		d.DrawPNG(&d.assets.WifiOn)
 
-	} else if utilities.Connected() {
+	} else if Connected() {
 		d.img.DrawStringAnchored("Nokia 8110 4G", 230, 10, 1, 0.5)
 		d.DrawPNG(&d.assets.WifiOn)
 	} else {
@@ -129,7 +128,7 @@ func (d *Display) CheckConnection() {
 	d.img.Fill()
 }
 
-func (d *Display) drawRectangle(s string, coord utilities.Coordonates) {
+func (d *Display) drawRectangle(s string, coord Coordonates) {
 
 	if err := d.img.LoadFontFace("/home/pi/dev/8-BIT_WONDER.TTF", 10); err != nil {
 		panic(err)
@@ -148,10 +147,10 @@ func run(commChannels *structs.CommChannels) {
 	display := Display{}
 
 	display.Initialise()
-	display.drawRectangle("A", utilities.Coordonates{X: display.epd.Width / 2, Y: display.epd.Height / 2})
-	display.drawRectangle("B", utilities.Coordonates{X: 20, Y: 20})
-	display.drawRectangle("C", utilities.Coordonates{X: display.epd.Width, Y: display.epd.Height / 2})
-	display.drawRectangle("00", utilities.Coordonates{X: 0, Y: 0})
+	display.drawRectangle("A", Coordonates{X: display.epd.Width / 2, Y: display.epd.Height / 2})
+	display.drawRectangle("B", Coordonates{X: 20, Y: 20})
+	display.drawRectangle("C", Coordonates{X: display.epd.Width, Y: display.epd.Height / 2})
+	display.drawRectangle("00", Coordonates{X: 0, Y: 0})
 
 	// display.Welcome()
 	// display.loadAssets()
@@ -225,7 +224,7 @@ func run(commChannels *structs.CommChannels) {
 	// 	img.DrawStringAnchored("Ethernet", 230, 10, 1, 0.5)
 	// 	img.DrawImageAnchored(wifi_connected, 240, 10, 0.5, 0.5)
 
-	// } else if utilities.Connected() {
+	// } else if Connected() {
 	// 	img.DrawStringAnchored("Nokia 8110 4G", 230, 10, 1, 0.5)
 	// 	img.DrawImageAnchored(wifi_connected, 240, 10, 0.5, 0.5)
 	// } else {

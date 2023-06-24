@@ -1,5 +1,10 @@
 package microphone
 
+/*
+https://unix.stackexchange.com/questions/106461/how-to-get-sound-intensity-of-an-audio-input-through-terminal
+arecord -D hw:1,0 -r 44100 -f S16_LE -c 1 -V mono /dev/null
+*/
+
 import (
 	"bytes"
 	"encoding/binary"
@@ -40,15 +45,6 @@ func byteSliceToInt16Slice(data []byte) []int16 {
 	return result
 }
 
-//	func int16SliceToByteSlice(data []int16) []byte {
-//		buf := new(bytes.Buffer)
-//		for _, value := range data {
-//			if err := binary.Write(buf, binary.LittleEndian, value); err != nil {
-//				log.Fatal(err)
-//			}
-//		}
-//		return buf.Bytes()
-//	}
 func int16SliceToSampleSlice(data []int16) []wav.Sample {
 	result := make([]wav.Sample, len(data))
 	for i, value := range data {
@@ -114,6 +110,7 @@ func (m *microphone) InitDevices() {
 		}
 	}
 	fmt.Println(m.devicesList[defaultDevice].ID)
+	defaultDevice = 3
 
 	deviceCallbacks := malgo.DeviceCallbacks{
 		Data: func(outputSamples, inputSamples []byte, frameCount uint32) {

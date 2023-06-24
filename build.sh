@@ -1,7 +1,7 @@
 #!/bin/bash
 TARGET_USER=pi
 TARGET_PWD=vespas
-TARGET_HOST=192.168.2.227
+TARGET_HOST=192.168.2.224
 TARGET_DIR=dev
 ARM_VERSION=6
  
@@ -9,12 +9,13 @@ ARM_VERSION=6
 EXECUTABLE=shaz
  
 echo "Building for Raspberry Pi..."
-env CGO_ENABLED=1  CFLAGS='-latomic' CPPFLAGS='-latomic' GOOS=linux GOARCH=arm GOARM=6 CC="arm-linux-gnueabihf-gcc" go build -o shaz ./src/
+env CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC="/home/ub/arm-cross-comp-env/arm-raspbian-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc" CGO_LDFLAGS="-latomic" go build -o shaz ./src/
 #  arm-linux-gnueabi-gcc
 #  arm-linux-gnueabihf-gcc
-echo "Uploading to Raspberry Pi..."
+# echo "Uploading to Raspberry Pi..."
 scp -i /home/ub/.ssh/id_rsa.pub $EXECUTABLE $TARGET_USER@$TARGET_HOST:$TARGET_DIR/$EXECUTABLE
 scp -i /home/ub/.ssh/id_rsa.pub static/* $TARGET_USER@$TARGET_HOST:$TARGET_DIR/static/
+# scp -i /home/ub/.ssh/id_rsa.pub -r /home/ub/Documents/Coding/ShazPi $TARGET_USER@$TARGET_HOST:$TARGET_DIR/
 
 
 
