@@ -1,0 +1,22 @@
+
+[Shazam]
+  key = "68870327c5msh33d760331b46bd5p144895jsn48821e689b9b"
+
+[Spotify]
+  clientID = "2a5ec5e298ca431a953ccefe2cf89fd1"
+  clientSecret = "d1526c53e65e4f668f61abe624d9b19f"
+  playlist_id = "3U6UvYhBTfokg2IPkXcJ3q"
+
+  [Spotify.TokenLogin]
+    AccessToken = "BQBF6wnMJYNqf4VsPYAjOcTaHyrO_aSrHhzpLAnV_aj7B6GQrG4EiyZWPmwDHGg60a74A3t4YjpHZ6VBAkkLNtxbc9pVmMJi9v_mm5x6DgU4puvUdhnRfl_Yq5tS57cAOp7bp2xtvZajAqBRj5irI_dTmiwUO_jzwkQXLrQWy_CldQF22rxxA8wy9DmlMAaqFaPAPHrAbj85f9WDNN_gAJP9MJZiQZcbfyCtoTw_ALbYJ3D1ShMAlxmUz7caryHjtIpziQWl"
+    ExpiresAt = 1687626838
+    ExpiresIn = 3600
+    RefreshToken = "AQBz_9Mg7TBOmUp-TinGFNpDR8J2lpXVkpF5adM_oSt4yuCXVDdgRzVLS7zOpGoKSjZEJC2E4IaDrmNyteC5QJv8GGCI7L4crshdObEo6PgikppBsigde-2tbhucrA_lLcI"
+    TokenType = "Bearer"
+
+  [Spotify.TokenSearch]
+    AccessToken = "BQCQWwlIKPlKWTbjOiCMWQU_tjS03oZa7pV1_20LEwqR1N6-TUux8AnaJiDuqyHjdHZQ7kjTSdPrMOgVtPu75wK3hu2F_-3l4d2CIA6dMBN_krjfhJ4"
+    ExpiresAt = 1687627421
+    ExpiresIn = 3600
+    RefreshToken = ""
+    TokenType = "Bearer"

@@ -24,11 +24,13 @@ func run(commChannels *structs.CommChannels) {
 			commChannels.PlayChannel <- true
 		case "r":
 			commChannels.RecordChannel <- time.Second * 5
+		case "s":
+			commChannels.FetchAPI <- true
 		case "q":
 			os.Exit(0)
 		}
 
-		if input == "p" || input == "r" {
+		if input == "p" || input == "r" || input == "s" {
 			fmt.Println("Valid input:", input)
 		} else {
 			fmt.Println("Invalid input. Please try again.")
