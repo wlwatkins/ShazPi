@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"shazammini/src/structs"
+	"time"
 
 	"gobot.io/x/gobot"
 )
@@ -22,7 +23,7 @@ func run(commChannels *structs.CommChannels) {
 		case "p":
 			commChannels.PlayChannel <- true
 		case "r":
-			commChannels.RecordChannel <- true
+			commChannels.RecordChannel <- time.Second * 5
 		case "q":
 			os.Exit(0)
 		}
