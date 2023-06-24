@@ -9,14 +9,12 @@ ARM_VERSION=6
 EXECUTABLE=shaz
  
 echo "Building for Raspberry Pi..."
-env CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC="/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-gcc" go build -o shaz ./src/
+env CGO_ENABLED=1  CFLAGS='-latomic' CPPFLAGS='-latomic' GOOS=linux GOARCH=arm GOARM=6 CC="arm-linux-gnueabihf-gcc" go build -o shaz ./src/
 #  arm-linux-gnueabi-gcc
 #  arm-linux-gnueabihf-gcc
 echo "Uploading to Raspberry Pi..."
 scp -i /home/ub/.ssh/id_rsa.pub $EXECUTABLE $TARGET_USER@$TARGET_HOST:$TARGET_DIR/$EXECUTABLE
-scp -i /home/ub/.ssh/id_rsa.pub wifi_connected.png $TARGET_USER@$TARGET_HOST:$TARGET_DIR/wifi_connected.png
-scp -i /home/ub/.ssh/id_rsa.pub wifi_unconnected.png $TARGET_USER@$TARGET_HOST:$TARGET_DIR/wifi_unconnected.png
-scp -i /home/ub/.ssh/id_rsa.pub 8-BIT_WONDER.TTF $TARGET_USER@$TARGET_HOST:$TARGET_DIR/8-BIT_WONDER.TTF
+scp -i /home/ub/.ssh/id_rsa.pub static/* $TARGET_USER@$TARGET_HOST:$TARGET_DIR/static/
 
 
 

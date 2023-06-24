@@ -2,8 +2,8 @@ package api
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"shazammini/src/structs"
 
 	"github.com/pelletier/go-toml"
@@ -25,31 +25,30 @@ type Config struct {
 
 func (cfg Config) loadToml() Config {
 	tomlFile := "creds.toml"
-	tomlData, err := ioutil.ReadFile(tomlFile)
+	tomlData, err := os.ReadFile(tomlFile)
 	if err != nil {
 		log.Fatalf("Failed to read TOML file: %v", err)
 	}
+
 	err = toml.Unmarshal(tomlData, &cfg)
 	if err != nil {
 		log.Fatalf("Failed to parse TOML: %v", err)
 	}
 
 	return cfg
-
 }
-
 func (cfg Config) saveToml() error {
 	// Create a TOML representation of the config struct
 	tomlData, err := toml.Marshal(cfg)
 	if err != nil {
-		return fmt.Errorf("Failed to marshal TOML: %v", err)
+		return fmt.Errorf("failed to marshal TOML: %v", err)
 	}
 
 	// Write the TOML data to a file
 	tomlFile := "creds.toml"
-	err = ioutil.WriteFile(tomlFile, tomlData, 0644)
+	err = os.WriteFile(tomlFile, tomlData, 0644)
 	if err != nil {
-		return fmt.Errorf("Failed to write TOML file: %v", err)
+		return fmt.Errorf("failed to write TOML file: %v", err)
 	}
 
 	return nil

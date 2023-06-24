@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -110,49 +110,6 @@ type Genre struct {
 	Primary string `json:"primary"`
 }
 
-// type Metadata struct {
-// 	Title string `json:"title"`
-// 	Text  string `json:"text"`
-// }
-
-// type Section struct {
-// 	Type      string     `json:"type"`
-// 	MetaPages []MetaPage `json:"metapages"`
-// 	TabName   string     `json:"tabname"`
-// 	Metadata  []Metadata `json:"metadata"`
-// }
-
-// type MetaPage struct {
-// 	Image   string `json:"image"`
-// 	Caption string `json:"caption"`
-// }
-
-// type YoutubeURL struct {
-// 	Caption string `json:"caption"`
-// 	Image   struct {
-// 		Dimensions struct {
-// 			Width  int `json:"width"`
-// 			Height int `json:"height"`
-// 		} `json:"dimensions"`
-// 		URL string `json:"url"`
-// 	} `json:"image"`
-// 	Actions []struct {
-// 		Name  string `json:"name"`
-// 		Type  string `json:"type"`
-// 		Share struct {
-// 			Subject  string `json:"subject"`
-// 			Text     string `json:"text"`
-// 			Href     string `json:"href"`
-// 			Image    string `json:"image"`
-// 			Twitter  string `json:"twitter"`
-// 			HTML     string `json:"html"`
-// 			Avatar   string `json:"avatar"`
-// 			Snapchat string `json:"snapchat"`
-// 		} `json:"share"`
-// 		URI string `json:"uri"`
-// 	} `json:"actions"`
-// }
-
 type MyShazam struct {
 	Apple struct {
 		Actions []struct {
@@ -180,7 +137,13 @@ type shazamAPI struct {
 }
 
 func (s *shazamAPI) ReadFile() {
-	data, err := ioutil.ReadFile("output.wav")
+	file, err := os.Open("output.wav")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
 	if err != nil {
 		panic(err)
 	}

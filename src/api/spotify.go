@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -65,7 +65,8 @@ func sendEmail(text string) {
 }
 
 func generateRandomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
+	seed := time.Now().UnixNano()
+	rng := rand.New(rand.NewSource(seed))
 
 	// Available characters for random string generation
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -73,7 +74,7 @@ func generateRandomString(length int) string {
 	// Generate random string
 	var sb strings.Builder
 	for i := 0; i < length; i++ {
-		index := rand.Intn(len(charset))
+		index := rng.Intn(len(charset))
 		sb.WriteByte(charset[index])
 	}
 
@@ -298,13 +299,14 @@ func (s *spotifyAPI) AddToPlaylist(trackUri string) {
 func (s *spotifyAPI) LoadTokens() {
 
 	tomlFile := "toeks.toml"
-	tomlData, err := ioutil.ReadFile(tomlFile)
+	file, err := os.Open(tomlFile)
 	if err != nil {
-		log.Fatalf("Failed to read TOML file: %v", err)
+		log.Fatalf("Failed to open TOML file: %v", err)
 	}
+	defer file.Close()
+
 	var cfg Config
-	err = toml.Unmarshal(tomlData, &cfg)
-	if err != nil {
+	if err := toml.NewDecoder(file).Decode(&cfg); err != nil {
 		log.Fatalf("Failed to parse TOML: %v", err)
 	}
 }
