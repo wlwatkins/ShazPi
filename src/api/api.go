@@ -199,12 +199,13 @@ func (s *shazamAPI) CallAPI() {
 	defer res.Body.Close()
 
 	body, _ := io.ReadAll(res.Body)
-	fmt.Println(string(body))
+
 	s.response = ShazamResponse{}
 
 	err = json.Unmarshal(body, &s.response)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		fmt.Println(string(body))
 	}
 }
 
