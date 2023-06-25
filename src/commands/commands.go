@@ -23,9 +23,8 @@ func run(commChannels *structs.CommChannels) {
 		case "p":
 			commChannels.PlayChannel <- true
 		case "r":
+			commChannels.DisplayRecord <- true
 			commChannels.RecordChannel <- time.Second * 5
-		case "s":
-			commChannels.FetchAPI <- true
 		case "q":
 			os.Exit(0)
 		}

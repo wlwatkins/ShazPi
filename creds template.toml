@@ -1,0 +1,22 @@
+
+[Shazam]
+  key = ""
+
+[Spotify]
+  clientID = ""
+  clientSecret = ""
+  playlist_id = ""
+
+  [Spotify.TokenLogin]
+    AccessToken = ""
+    ExpiresAt = 0
+    ExpiresIn = 3600
+    RefreshToken = ""
+    TokenType = ""
+
+  [Spotify.TokenSearch]
+    AccessToken = ""
+    ExpiresAt = 0
+    ExpiresIn = 3600
+    RefreshToken = ""
+    TokenType = ""

@@ -194,6 +194,7 @@ func run(commChannels *structs.CommChannels) {
 		log.Println("Saving to file..")
 		mic.SaveToWAV()
 
+		commChannels.DisplayThinking <- true
 		commChannels.FetchAPI <- true
 
 	}

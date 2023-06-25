@@ -71,7 +71,7 @@ func run(commChannels *structs.CommChannels) {
 		clientSecret:     cfg.Spotify.ClientSecret,
 		host:             "api.spotify.com",
 		search_url:       "https://api.spotify.com/v1/search?q={uri}&type=track",
-		data:             "{ 'uris': [ 'string'],'position': 0}",
+		data:             "{ 'uris': ['string'],'position': 0}",
 		token_login:      cfg.Spotify.TokenLogin,
 		token_search:     cfg.Spotify.TokenSearch,
 	}
@@ -81,8 +81,8 @@ func run(commChannels *structs.CommChannels) {
 	for range commChannels.FetchAPI {
 		shazam.GetSong()
 		fmt.Print(shazam.response)
-		spotify.AddSong(&shazam.response)
-
+		track := spotify.AddSong(&shazam.response)
+		commChannels.DisplayResult <- track
 	}
 
 }

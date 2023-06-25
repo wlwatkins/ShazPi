@@ -5,12 +5,11 @@ import (
 	"image/color"
 	"log"
 	"net"
-	"os"
 	"shazammini/src/structs"
-	"strings"
 
 	"github.com/fogleman/gg"
 	"github.com/stianeikeland/go-rpio/v4"
+	wifiname "github.com/yelinaung/wifi-name"
 	"gobot.io/x/gobot"
 )
 
@@ -56,93 +55,116 @@ func init() {
 type Display struct {
 	epd    *EPD
 	img    *gg.Context
+	width  float64
+	height float64
 	assets Assets
 }
 
 func (d *Display) Initialise() {
 
 	d.epd = New(rpio.Pin(RST_PIN), rpio.Pin(DC_PIN), rpio.Pin(CS_PIN), ReadablePinPatch{rpio.Pin(BUSY_PIN)}, rpio.SpiTransmit)
-	config := Config{Rotation: ROTATION_90}
+	config := Config{Rotation: ROTATION_0}
 	d.epd.Configure(config)
+	d.width = float64(d.epd.height)
+	d.height = float64(d.epd.width)
 
-	d.img = gg.NewContext(int(d.epd.height), int(d.epd.width))
-	d.img.Translate(-float64(d.epd.width/2), 0)
-	d.img.RotateAbout(PI/2, float64(d.epd.height/2), float64(d.epd.width)/2)
+	d.img = gg.NewContext(int(d.height), int(d.width))
+	d.img.Translate(-d.height/2, d.height/2)
+	d.img.RotateAbout(PI/2, d.width/2, d.height/2)
 	d.img.SetColor(color.White)
 	d.img.Clear()
 }
 
-func (d *Display) Welcome() {
-	if err := d.img.LoadFontFace("/home/pi/dev/static/8-BIT_WONDER.TTF", 18); err != nil {
+func (d *Display) Print(str string, font float64, c Coordonates) float64 {
+	if err := d.img.LoadFontFace("/home/pi/dev/static/Inter-Black.ttf", font); err != nil {
 		panic(err)
 	}
 
 	d.img.SetColor(color.Black)
-	d.img.DrawRectangle(0, 0, float64(d.epd.height), float64(d.epd.width))
-	d.img.Fill()
+	lines := d.img.WordWrap(str, d.width)
+	fullHeight := len(lines) * int(font)
+	for i, l := range lines {
+		d.img.DrawStringAnchored(l, c.X, c.Y+(float64(i)*font), c.OX, c.OY)
+		d.img.Stroke()
+	}
+	return float64(fullHeight)
+}
 
-	d.img.SetColor(color.White)
-	d.img.DrawStringAnchored("ShazPi", float64(d.epd.height)/2, float64(d.epd.width)/2, 0.5, 0.5)
-	d.img.Stroke()
+func (d *Display) Version() {
+	d.Print("v0.1", 15, Coordonates{X: 10, Y: 10, OX: 0, OY: 0.5})
+}
+
+func (d *Display) Welcome() {
+	d.Clear()
+	d.Print("ShazPi", 30, Coordonates{X: d.width / 2, Y: d.height / 2, OX: 0.5, OY: 0.5})
+	d.Print("Loading", 20, Coordonates{X: d.width / 2, Y: (d.height / 2) + 20, OX: 0.5, OY: 1})
+	d.Print("connecting...", 15, Coordonates{X: d.width, Y: 10, OX: 1, OY: 0.5})
+	d.Version()
+
 	d.epd.Draw(d.img)
-	d.img.SetColor(color.White)
-	d.img.Clear()
+
 }
 
 func (d *Display) loadAssets() {
-	d.assets.LoadAssets()
+	d.assets.LoadAssets(d)
 }
 
 func (d *Display) DrawPNG(e *EPDPNG) {
 	d.img.SetColor(color.Black)
-	d.img.DrawImageAnchored(e.png, e.coord.X, e.coord.Y, 0.5, 0.5)
+	d.img.DrawImageAnchored(e.png, int(e.coord.X), int(e.coord.Y), 0.5, 0.5)
 	d.img.Fill()
 }
-
-// func (d *Display) draw() {
-// 	// d.epd.Sleep()
-// 	// d.epd.Clear(color.White)
-// 	if e := d.epd.Draw(d.img.Image()); e != nil {
-// 		fmt.Printf("failed to draw: %v\n", e)
-// 		d.epd.Clear(color.White)
-// 	}
-
-// 	// d.epd.Sleep()
-// }
 
 func (d *Display) CheckConnection() {
-	if err := d.img.LoadFontFace("/home/pi/dev/static/8-BIT_WONDER.TTF", 10); err != nil {
-		panic(err)
-	}
-	byNameInterface, _ := net.InterfaceByName("eth0")
-	fmt.Println(byNameInterface)
-	d.img.SetColor(color.Black)
-	if strings.Contains(byNameInterface.Flags.String(), "up") {
-		d.img.DrawStringAnchored("Ethernet", 230, 10, 1, 0.5)
-		d.DrawPNG(&d.assets.WifiOn)
 
+	byNameInterface, _ := net.InterfaceByName("eth0")
+	// if strings.Contains(byNameInterface.Flags.String(), "up") {
+	if byNameInterface != nil {
+		d.Print("Ethernet", 15, Coordonates{X: d.width, Y: 10, OX: 1, OY: 0.5})
+		d.DrawPNG(&d.assets.WifiOn)
 	} else if Connected() {
-		d.img.DrawStringAnchored("Nokia 8110 4G", 230, 10, 1, 0.5)
+		d.Print(wifiname.WifiName(), 15, Coordonates{X: d.width - 25, Y: 10, OX: 1, OY: 0.5})
 		d.DrawPNG(&d.assets.WifiOn)
 	} else {
-		d.img.DrawStringAnchored("No internet", 230, 10, 1, 0.5)
+		d.Print("No internet", 15, Coordonates{X: d.width - 25, Y: 10, OX: 1, OY: 0.5})
 		d.DrawPNG(&d.assets.WifiOff)
 	}
-	d.img.Fill()
 }
 
-func (d *Display) drawRectangle(s string, coord Coordonates) {
-
-	if err := d.img.LoadFontFace("/home/pi/dev/static/8-BIT_WONDER.TTF", 10); err != nil {
-		panic(err)
-	}
-
-	d.img.SetColor(color.Black)
-	fmt.Printf("float64(d.epd.width)/2 %d\n", float64(d.epd.width)/2)
-	d.img.DrawStringAnchored(s, 0, float64(d.epd.height)/2, 0.5, 0.5)
-	// d.img.Fill()
-	d.img.Stroke()
+func (d *Display) DrawWithDecoration() {
+	d.CheckConnection()
+	d.Version()
 	d.epd.Draw(d.img)
+}
+
+func (d *Display) Clear() {
+	d.img.SetColor(color.White)
+	d.img.Clear()
+}
+
+func (d *Display) Idle() {
+	d.Clear()
+	d.Print("Ready to play music", 30, Coordonates{X: d.width / 2, Y: d.height / 2, OX: 0.5, OY: 0.5})
+	d.DrawWithDecoration()
+}
+
+func (d *Display) Recording() {
+	d.Clear()
+	d.Print("Recording", 30, Coordonates{X: d.width / 2, Y: d.height / 2, OX: 0.5, OY: 0.5})
+	d.DrawWithDecoration()
+}
+
+func (d *Display) Thinking() {
+	d.Clear()
+	d.Print("Thinking", 30, Coordonates{X: d.width / 2, Y: d.height / 2, OX: 0.5, OY: 0.5})
+	d.DrawWithDecoration()
+}
+
+func (d *Display) Result(trackName, artistName string) {
+	d.Clear()
+	offset := d.Print(trackName, 30, Coordonates{X: d.width / 2, Y: 40, OX: 0.5, OY: 0.5})
+	d.Print(artistName, 25, Coordonates{X: d.width / 2, Y: (40) + offset, OX: 0.5, OY: 1})
+	d.DrawWithDecoration()
 }
 
 func run(commChannels *structs.CommChannels) {
@@ -153,97 +175,25 @@ func run(commChannels *structs.CommChannels) {
 
 	display.Initialise()
 	display.Welcome()
-	// display.drawRectangle("B", Coordonates{X: 0, Y: 0})
 
-	// display.loadAssets()
-	// display.CheckConnection()
-	// time.Sleep(2 * time.Second)
-	// display.epd.Draw(display.img.Image())
+	display.loadAssets()
+	display.Idle()
 
-	os.Exit(0)
-
-	// for {
-	// 	select {
-	// 	case <-commChannels.RecordChannel:
-	// 		fmt.Println("Hello")
-	// 	case <-commChannels.PlayChannel:
-	// 		fmt.Println("Bye")
-	// 	}
-	// }
-
-	// // initialize the driver
-
-	// img.SetColor(color.White)
-	// img.Clear()
-	// if err := img.LoadFontFace("/home/pi/dev/8-BIT_WONDER.TTF", 20); err != nil {
-	// 	panic(err)
-	// }
-
-	// var cx, cy = float64(display.Height) / 2, float64(display.Width) / 2
-	// var s1 = "go get"
-	// var hs1, _ = img.MeasureString(s1)
-	// var s2 = "I love my pioupiou"
-	// var hs2, ws2 = img.MeasureString(s2)
-	// fmt.Printf("width: %d, height %d, cx-(hs1/2) %f", display.Width, display.Height, (cx - (hs1 / 2)))
-
-	// img.SetColor(color.White)
-	// img.DrawRectangle(0, 0, float64(display.Height), float64(display.Width))
-	// img.Fill()
-
-	// _, _, _ = cy, hs2, ws2
-	// // img.SetColor(color.Black)
-	// // img.DrawString(s1, cx-(hs1/2), cy-ws2-8)
-	// // img.Stroke()
-	// img.SetColor(color.Black)
-	// img.DrawString(s2, cx-(hs2/2)-20, cy)
-	// img.Stroke()
-	// // display.Clear(color.Black)
-
-	// wifi_connected, err := gg.LoadPNG("wifi_connected.png")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// wifi_connected = resize.Resize(uint(float64(wifi_connected.Bounds().Dx())*0.04), 0, wifi_connected, resize.Lanczos2)
-
-	// wifi_unconnected, err := gg.LoadPNG("wifi_unconnected.png")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// wifi_unconnected = resize.Resize(uint(float64(wifi_unconnected.Bounds().Dx())*0.04), 0, wifi_unconnected, resize.Lanczos2)
-
-	// // w := wifi_connected.Bounds().Size().X
-	// // h := wifi_connected.Bounds().Size().Y
-
-	// if err := img.LoadFontFace("/home/pi/dev/8-BIT_WONDER.TTF", 10); err != nil {
-	// 	panic(err)
-	// }
-	// byNameInterface, _ := net.InterfaceByName("eth0")
-	// fmt.Println(byNameInterface)
-	// img.SetColor(color.Black)
-	// if strings.Contains(byNameInterface.Flags.String(), "up") {
-	// 	img.DrawStringAnchored("Ethernet", 230, 10, 1, 0.5)
-	// 	img.DrawImageAnchored(wifi_connected, 240, 10, 0.5, 0.5)
-
-	// } else if Connected() {
-	// 	img.DrawStringAnchored("Nokia 8110 4G", 230, 10, 1, 0.5)
-	// 	img.DrawImageAnchored(wifi_connected, 240, 10, 0.5, 0.5)
-	// } else {
-	// 	img.DrawStringAnchored("No internet", 230, 10, 1, 0.5)
-	// 	img.DrawImageAnchored(wifi_unconnected, 240, 10, 0.5, 0.5)
-
-	// }
-	// // img.DrawImage(wifi_connected, 10, 10)
-	// img.Fill()
-
-	// if e := display.Draw(img.Image()); e != nil {
-	// 	fmt.Printf("failed to draw: %v\n", e)
-	// 	display.Clear(color.White)
-	// }
-	// fmt.Println("Sleep")
-
-	// display.Sleep()
+	for {
+		select {
+		case <-commChannels.DisplayRecord:
+			display.Recording()
+		case <-commChannels.DisplayThinking:
+			display.Thinking()
+		case track := <-commChannels.DisplayResult:
+			log.Println(track.Artists)
+			// artist := "Unknown"
+			// if len(track.Artists) > 1 {
+			// 	artist = track.Artists[0].Name
+			// }
+			display.Result(track.Title, track.Subtitle)
+		}
+	}
 }
 
 func Screen(commChannels *structs.CommChannels) *gobot.Robot {

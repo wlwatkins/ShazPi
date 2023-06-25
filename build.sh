@@ -15,7 +15,7 @@ env CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC="/home/ub/arm-cross-comp-env/
 # echo "Uploading to Raspberry Pi..."
 scp -i /home/ub/.ssh/id_rsa.pub $EXECUTABLE $TARGET_USER@$TARGET_HOST:$TARGET_DIR/$EXECUTABLE
 scp -i /home/ub/.ssh/id_rsa.pub static/* $TARGET_USER@$TARGET_HOST:$TARGET_DIR/static/
-# scp -i /home/ub/.ssh/id_rsa.pub -r /home/ub/Documents/Coding/ShazPi $TARGET_USER@$TARGET_HOST:$TARGET_DIR/
+# scp -i /home/ub/.ssh/id_rsa.pub -r /home/ub/Documents/Coding/ShazPi/static $TARGET_USER@$TARGET_HOST:$TARGET_DIR/static
 
 
 

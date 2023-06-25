@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"shazammini/src/structs"
 	"strings"
 	"time"
 
@@ -337,7 +338,7 @@ func (s *spotifyAPI) EstablishAcces() {
 	}
 }
 
-func (s *spotifyAPI) AddSong(song *ShazamResponse) {
+func (s *spotifyAPI) AddSong(song *ShazamResponse) structs.Track {
 
 	s.EstablishAcces()
 
@@ -346,10 +347,10 @@ func (s *spotifyAPI) AddSong(song *ShazamResponse) {
 			uri := provider.Actions[0].Uri
 			trackUri := s.SearchTrack(uri)
 			s.AddToPlaylist(trackUri)
-			return
+			return song.Track
 		}
 	}
 	fmt.Println(song.Track.Hub.Providers)
 	fmt.Println("Could not find track in spotify. Need to send email with info")
-
+	return song.Track
 }

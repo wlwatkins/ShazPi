@@ -421,7 +421,7 @@ func (epd *EPD) Display(img *gg.Context) error {
 			var b = 0xFF
 			for px := 0; px < 8; px++ {
 				i2, j2 := epd.xy(i, j)
-				var pixel = img.Image().At(int(i2), int(j2)+px)
+				var pixel = img.Image().At(int(i2)+px, int(j2))
 				if isdark(pixel.RGBA()) {
 					b &= ^(0x80 >> (px % 8))
 				}
@@ -430,10 +430,7 @@ func (epd *EPD) Display(img *gg.Context) error {
 		}
 	}
 
-	epd.sendCommand(DISPLAY_UPDATE_CONTROL_2)
-	epd.sendData(0xC4)
-	epd.sendCommand(MASTER_ACTIVATION)
-	epd.sendCommand(TERMINATE_FRAME_READ_WRITE)
+	epd.turnOnDisplay()
 	return nil
 }
 

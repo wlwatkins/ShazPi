@@ -5,9 +5,9 @@ type Assets struct {
 	WifiOff EPDPNG
 }
 
-func (a *Assets) LoadAssets() {
+func (a *Assets) LoadAssets(d *Display) {
 
-	a.WifiOff.LoadPNG("static/wifi_unconnected.png", 0.04, Coordonates{X: 240, Y: 10})
-	a.WifiOn.LoadPNG("static/wifi_connected.png", 0.04, Coordonates{X: 240, Y: 10})
+	a.WifiOff.LoadPNG("static/wifi_unconnected.png", 0.04, Coordonates{X: d.width - 10, Y: 10})
+	a.WifiOn.LoadPNG("static/wifi_connected.png", 0.04, Coordonates{X: d.width - 10, Y: 10})
 
 }

@@ -1,6 +1,8 @@
 package display
 
 type Coordonates struct {
-	X int
-	Y int
+	X  float64
+	Y  float64
+	OX float64
+	OY float64
 }
