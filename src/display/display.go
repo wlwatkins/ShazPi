@@ -62,26 +62,29 @@ type Display struct {
 func (d *Display) Initialise() {
 
 	d.epd = New(rpio.Pin(RST_PIN), rpio.Pin(DC_PIN), rpio.Pin(CS_PIN), ReadablePinPatch{rpio.Pin(BUSY_PIN)}, rpio.SpiTransmit)
-	config := Config{Height: 150, Width: 200, LogicalWidth: 200, Rotation: 0}
+	config := Config{Rotation: ROTATION_90}
 	d.epd.Configure(config)
 
-	d.img = gg.NewContext(d.epd.Width, d.epd.Height)
-	d.img.RotateAbout(PI/2, 0, 0)
-	d.img.Translate(float64(d.epd.Height), 0)
-
+	d.img = gg.NewContext(int(d.epd.height), int(d.epd.width))
+	d.img.Translate(-float64(d.epd.width/2), 0)
+	d.img.RotateAbout(PI/2, float64(d.epd.height/2), float64(d.epd.width)/2)
 	d.img.SetColor(color.White)
 	d.img.Clear()
 }
 
 func (d *Display) Welcome() {
-	if err := d.img.LoadFontFace("/home/pi/dev/8-BIT_WONDER.TTF", 18); err != nil {
+	if err := d.img.LoadFontFace("/home/pi/dev/static/8-BIT_WONDER.TTF", 18); err != nil {
 		panic(err)
 	}
 
 	d.img.SetColor(color.Black)
-	d.img.DrawStringAnchored("ShazPi", float64(d.epd.Height)/2, float64(d.epd.Width)/2, 0.5, 0.5)
+	d.img.DrawRectangle(0, 0, float64(d.epd.height), float64(d.epd.width))
+	d.img.Fill()
+
+	d.img.SetColor(color.White)
+	d.img.DrawStringAnchored("ShazPi", float64(d.epd.height)/2, float64(d.epd.width)/2, 0.5, 0.5)
 	d.img.Stroke()
-	d.epd.Draw(d.img.Image())
+	d.epd.Draw(d.img)
 	d.img.SetColor(color.White)
 	d.img.Clear()
 }
@@ -108,7 +111,7 @@ func (d *Display) DrawPNG(e *EPDPNG) {
 // }
 
 func (d *Display) CheckConnection() {
-	if err := d.img.LoadFontFace("/home/pi/dev/8-BIT_WONDER.TTF", 10); err != nil {
+	if err := d.img.LoadFontFace("/home/pi/dev/static/8-BIT_WONDER.TTF", 10); err != nil {
 		panic(err)
 	}
 	byNameInterface, _ := net.InterfaceByName("eth0")
@@ -130,14 +133,16 @@ func (d *Display) CheckConnection() {
 
 func (d *Display) drawRectangle(s string, coord Coordonates) {
 
-	if err := d.img.LoadFontFace("/home/pi/dev/8-BIT_WONDER.TTF", 10); err != nil {
+	if err := d.img.LoadFontFace("/home/pi/dev/static/8-BIT_WONDER.TTF", 10); err != nil {
 		panic(err)
 	}
 
 	d.img.SetColor(color.Black)
-	d.img.DrawStringAnchored(s, float64(coord.X), float64(coord.Y), 0.5, 0.5)
+	fmt.Printf("float64(d.epd.width)/2 %d\n", float64(d.epd.width)/2)
+	d.img.DrawStringAnchored(s, 0, float64(d.epd.height)/2, 0.5, 0.5)
 	// d.img.Fill()
 	d.img.Stroke()
+	d.epd.Draw(d.img)
 }
 
 func run(commChannels *structs.CommChannels) {
@@ -147,16 +152,13 @@ func run(commChannels *structs.CommChannels) {
 	display := Display{}
 
 	display.Initialise()
-	display.drawRectangle("A", Coordonates{X: display.epd.Width / 2, Y: display.epd.Height / 2})
-	display.drawRectangle("B", Coordonates{X: 20, Y: 20})
-	display.drawRectangle("C", Coordonates{X: display.epd.Width, Y: display.epd.Height / 2})
-	display.drawRectangle("00", Coordonates{X: 0, Y: 0})
+	display.Welcome()
+	// display.drawRectangle("B", Coordonates{X: 0, Y: 0})
 
-	// display.Welcome()
 	// display.loadAssets()
 	// display.CheckConnection()
 	// time.Sleep(2 * time.Second)
-	display.epd.Draw(display.img.Image())
+	// display.epd.Draw(display.img.Image())
 
 	os.Exit(0)
 

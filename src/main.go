@@ -5,9 +5,7 @@ import (
 	// "shazammini/src/microphone"
 
 	"log"
-	"shazammini/src/api"
-	"shazammini/src/commands"
-	"shazammini/src/microphone"
+	"shazammini/src/display"
 	"shazammini/src/structs"
 	"time"
 
@@ -24,15 +22,15 @@ func main() {
 		FetchAPI:      make(chan bool),
 	}
 
-	mic := microphone.Microphone(&commCahnnels)
-	com := commands.Commands(&commCahnnels)
-	// dis := display.Screen(&commCahnnels)
-	api := api.Api(&commCahnnels)
+	// mic := microphone.Microphone(&commCahnnels)
+	// com := commands.Commands(&commCahnnels)
+	// api := api.Api(&commCahnnels)
+	dis := display.Screen(&commCahnnels)
 
-	master.AddRobot(api)
-	master.AddRobot(com)
-	master.AddRobot(mic)
-	// master.AddRobot(dis)
+	// master.AddRobot(api)
+	// master.AddRobot(com)
+	// master.AddRobot(mic)
+	master.AddRobot(dis)
 
 	master.Start()
 }

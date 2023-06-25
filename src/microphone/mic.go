@@ -105,12 +105,11 @@ func (m *microphone) InitDevices() {
 	defaultDevice := 0
 	m.listDevices()
 	for i, dev := range m.devicesList {
-		if dev.IsDefault == 1 {
+		if dev.ID.String() == "3a312c30" {
 			defaultDevice = i
 		}
 	}
 	fmt.Println(m.devicesList[defaultDevice].ID)
-	defaultDevice = 3
 
 	deviceCallbacks := malgo.DeviceCallbacks{
 		Data: func(outputSamples, inputSamples []byte, frameCount uint32) {
