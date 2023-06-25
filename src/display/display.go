@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"shazammini/src/structs"
+	"time"
 
 	"github.com/fogleman/gg"
 	"github.com/stianeikeland/go-rpio/v4"
@@ -53,11 +54,12 @@ func init() {
 }
 
 type Display struct {
-	epd    *EPD
-	img    *gg.Context
-	width  float64
-	height float64
-	assets Assets
+	epd       *EPD
+	img       *gg.Context
+	width     float64
+	height    float64
+	assets    Assets
+	connected bool
 }
 
 func (d *Display) Initialise() {
@@ -69,8 +71,8 @@ func (d *Display) Initialise() {
 	d.height = float64(d.epd.width)
 
 	d.img = gg.NewContext(int(d.height), int(d.width))
-	d.img.Translate(-d.height/2, d.height/2)
-	d.img.RotateAbout(PI/2, d.width/2, d.height/2)
+	d.img.Translate(float64(int(-(d.height/2)*1.1)), float64(int((d.height/2)*1.1)))
+	d.img.RotateAbout(PI/2+PI, float64(int(d.width/2)), float64(int(d.height/2)))
 	d.img.SetColor(color.White)
 	d.img.Clear()
 }
@@ -122,12 +124,15 @@ func (d *Display) CheckConnection() {
 	if byNameInterface != nil {
 		d.Print("Ethernet", 15, Coordonates{X: d.width, Y: 10, OX: 1, OY: 0.5})
 		d.DrawPNG(&d.assets.WifiOn)
+		d.connected = true
 	} else if Connected() {
 		d.Print(wifiname.WifiName(), 15, Coordonates{X: d.width - 25, Y: 10, OX: 1, OY: 0.5})
 		d.DrawPNG(&d.assets.WifiOn)
+		d.connected = true
 	} else {
 		d.Print("No internet", 15, Coordonates{X: d.width - 25, Y: 10, OX: 1, OY: 0.5})
 		d.DrawPNG(&d.assets.WifiOff)
+		d.connected = false
 	}
 }
 
@@ -167,6 +172,13 @@ func (d *Display) Result(trackName, artistName string) {
 	d.DrawWithDecoration()
 }
 
+func (d *Display) TryConnect() {
+	d.Clear()
+	d.Print("Looking for WiFi", 30, Coordonates{X: d.width / 2, Y: d.height / 2, OX: 0.5, OY: 0.5})
+	d.DrawWithDecoration()
+
+}
+
 func run(commChannels *structs.CommChannels) {
 
 	defer rpio.Close()
@@ -177,21 +189,29 @@ func run(commChannels *structs.CommChannels) {
 	display.Welcome()
 
 	display.loadAssets()
-	display.Idle()
 
 	for {
-		select {
-		case <-commChannels.DisplayRecord:
-			display.Recording()
-		case <-commChannels.DisplayThinking:
-			display.Thinking()
-		case track := <-commChannels.DisplayResult:
-			log.Println(track.Artists)
-			// artist := "Unknown"
-			// if len(track.Artists) > 1 {
-			// 	artist = track.Artists[0].Name
-			// }
-			display.Result(track.Title, track.Subtitle)
+		if display.connected {
+			display.Idle()
+			select {
+			case <-commChannels.DisplayRecord:
+				display.Recording()
+			case <-commChannels.DisplayThinking:
+				display.Thinking()
+			case track := <-commChannels.DisplayResult:
+				log.Println(track.Artists)
+				// artist := "Unknown"
+				// if len(track.Artists) > 1 {
+				// 	artist = track.Artists[0].Name
+				// }
+				display.Result(track.Title, track.Subtitle)
+
+				// case <-time.After(5 * time.Second):
+				// 	display.CheckConnection()
+			}
+		} else {
+			display.TryConnect()
+			time.Sleep(5 * time.Second)
 		}
 	}
 }

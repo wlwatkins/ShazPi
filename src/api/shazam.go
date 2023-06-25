@@ -29,7 +29,7 @@ type shazamAPI struct {
 }
 
 func (s *shazamAPI) ReadFile() {
-	file, err := os.Open("output.wav")
+	file, err := os.Open("temp/output.wav")
 	if err != nil {
 		panic(err)
 	}
@@ -62,6 +62,7 @@ func (s *shazamAPI) CallAPI() {
 	defer res.Body.Close()
 
 	body, _ := io.ReadAll(res.Body)
+	fmt.Println(string(body))
 
 	s.response = ShazamResponse{}
 

@@ -154,15 +154,15 @@ func (m *microphone) StopRecord() {
 
 func (m *microphone) SaveToWAV() {
 
-	if _, err := os.Stat("output.wav"); err == nil {
+	if _, err := os.Stat("temp/output.wav"); err == nil {
 		// Delete file
-		err := os.Remove("output.wav")
+		err := os.Remove("temp/output.wav")
 		if err != nil && !os.IsNotExist(err) {
 			log.Fatal(err)
 		}
 	}
 
-	f, err := os.Create("output.wav")
+	f, err := os.Create("temp/output.wav")
 	if err != nil {
 		log.Fatal(err)
 	}

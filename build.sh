@@ -13,10 +13,26 @@ env CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC="/home/ub/arm-cross-comp-env/
 #  arm-linux-gnueabi-gcc
 #  arm-linux-gnueabihf-gcc
 # echo "Uploading to Raspberry Pi..."
+
+
+PIDS=$(ssh $TARGET_USER@$TARGET_HOST "pgrep shaz")
+
+if [ -n "$PIDS" ]; then
+  # The program is running, so stop each PID
+  for PID in $PIDS; do
+    ssh $TARGET_USER@$TARGET_HOST "sudo kill $PID"
+    echo "Stopped shaz (PID: $PID) on remote_server"
+  done
+else
+  echo "shaz is not running on remote_server"
+fi
+
 scp -i /home/ub/.ssh/id_rsa.pub $EXECUTABLE $TARGET_USER@$TARGET_HOST:$TARGET_DIR/$EXECUTABLE
 scp -i /home/ub/.ssh/id_rsa.pub static/* $TARGET_USER@$TARGET_HOST:$TARGET_DIR/static/
+scp -i /home/ub/.ssh/id_rsa.pub creds.toml $TARGET_USER@$TARGET_HOST:$TARGET_DIR/creds.toml
+scp -i /home/ub/.ssh/id_rsa.pub launcher.sh $TARGET_USER@$TARGET_HOST:$TARGET_DIR/launcher.sh
 # scp -i /home/ub/.ssh/id_rsa.pub -r /home/ub/Documents/Coding/ShazPi/static $TARGET_USER@$TARGET_HOST:$TARGET_DIR/static
-
+ssh $TARGET_USER@$TARGET_HOST "sudo reboot"
 
 
 # CC=arm-none-linux-gnueabi-gcc CXX=arm-none-linux-gnueabi-g++ ./configure --target=arm-none-linux-gnueabi --host=arm-none-linux-gnueabi
