@@ -1,4 +1,4 @@
-// Package epd provides driver for Waveshare's E-paper e-ink display
+// Package epd provides driver for Waveshare's E-paper e-ink display https://github.com/waveshareteam/Touch_e-Paper_HAT/blob/main/python/lib/TP_lib/epd2in13_V3.py
 package display // import "go.riyazali.net/epd"
 
 import (
@@ -75,42 +75,50 @@ type ReadablePin interface {
 type Transmit func(data ...byte)
 
 // fullUpdate is a lookup table used whilst in full update mode
-var fullUpdateLut = [286]uint8{
-	0x80, 0x60, 0x40, 0x00, 0x00, 0x00, 0x00, //LUT0: BB:     VS 0 ~7
-	0x10, 0x60, 0x20, 0x00, 0x00, 0x00, 0x00, //LUT1: BW:     VS 0 ~7
-	0x80, 0x60, 0x40, 0x00, 0x00, 0x00, 0x00, //LUT2: WB:     VS 0 ~7
-	0x10, 0x60, 0x20, 0x00, 0x00, 0x00, 0x00, //LUT3: WW:     VS 0 ~7
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT4: VCOM:   VS 0 ~7
-
-	0x03, 0x03, 0x00, 0x00, 0x02, // TP0 A~D RP0
-	0x09, 0x09, 0x00, 0x00, 0x02, // TP1 A~D RP1
-	0x03, 0x03, 0x00, 0x00, 0x02, // TP2 A~D RP2
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP3 A~D RP3
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP4 A~D RP4
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP5 A~D RP5
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP6 A~D RP6
-
-	0x15, 0x41, 0xA8, 0x32, 0x30, 0x0A,
+var fullUpdateLut = [159]uint8{
+	0x80, 0x4A, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x40, 0x4A, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x80, 0x4A, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x40, 0x4A, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0xF, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0xF, 0x0, 0x0, 0xF, 0x0, 0x0, 0x2,
+	0xF, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x0, 0x0, 0x0,
+	0x22, 0x17, 0x41, 0x0, 0x32, 0x36,
 }
 
 // partialUpdate is a lookup table used whilst in partial update mode
 
-var partialUpdateLut = [286]uint8{
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT0: BB:     VS 0 ~7
-	0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT1: BW:     VS 0 ~7
-	0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT2: WB:     VS 0 ~7
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT3: WW:     VS 0 ~7
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LUT4: VCOM:   VS 0 ~7
-
-	0x0A, 0x00, 0x00, 0x00, 0x00, // TP0 A~D RP0
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP1 A~D RP1
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP2 A~D RP2
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP3 A~D RP3
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP4 A~D RP4
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP5 A~D RP5
-	0x00, 0x00, 0x00, 0x00, 0x00, // TP6 A~D RP6
-
-	0x15, 0x41, 0xA8, 0x32, 0x30, 0x0A,
+var partialUpdateLut = [159]uint8{
+	0x0, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x80, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x40, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x10, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x0, 0x0, 0x0,
+	0x22, 0x17, 0x41, 0x00, 0x32, 0x36,
 }
 
 // EPD defines the base type for the e-paper display driver
@@ -149,11 +157,11 @@ func New(rst, dc, cs WriteablePin, busy ReadablePin, transmit Transmit) *EPD {
 // reset resets the display back to defaults
 func (epd *EPD) Reset() {
 	epd.rst.High()
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(20 * time.Millisecond)
 	epd.rst.Low()
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	epd.rst.High()
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(20 * time.Millisecond)
 }
 
 // command transmits single byte of command instruction over the SPI line
@@ -175,7 +183,7 @@ func (epd *EPD) sendData(d byte) {
 // idle reads from busy line and waits for the device to get into idle state
 func (epd *EPD) ReadBusy() {
 	for epd.busy.Read() == 0x01 {
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
@@ -201,6 +209,42 @@ const (
 	FullUpdate    Update = 0
 	PartialUpdate Update = 1
 )
+
+/*
+function : Set lut
+parameter:
+
+	lut : lut data
+*/
+func (epd *EPD) Lut(lut [159]uint8) {
+
+	epd.sendCommand(0x32)
+	for _, v := range lut {
+		epd.sendData(v)
+	}
+	epd.ReadBusy()
+}
+
+/*
+function : Send lut data and configuration
+parameter:
+
+	lut : lut data
+*/
+func (epd *EPD) setLut(lut [159]uint8) {
+
+	epd.Lut(lut)
+	epd.sendCommand(0x3f)
+	epd.sendData(lut[153])
+	epd.sendCommand(0x03) // gate voltage
+	epd.sendData(lut[154])
+	epd.sendCommand(0x04)  // source voltage
+	epd.sendData(lut[155]) // VSH
+	epd.sendData(lut[156]) // VSH2
+	epd.sendData(lut[157]) // VSL
+	epd.sendCommand(0x2c)  // VCOM
+	epd.sendData(lut[158])
+}
 
 // mode sets the device's mode (based on the LookupTable)
 // The device can either be in FullUpdate mode where the whole display is updated each time an image is rendered
@@ -231,18 +275,17 @@ func (epd *EPD) Configure(cfg Config) {
 		epd.buffer[i] = 0xFF
 	}
 
-	epd.Reset()
-
 	if epd.Update == FullUpdate {
+		epd.Reset()
 
 		epd.ReadBusy()
 		epd.sendCommand(SW_RESET)
 		epd.ReadBusy()
 
-		epd.sendCommand(SET_ANALOG_BLOCK_CONTROL) //set analog block control
-		epd.sendData(0x54)
-		epd.sendCommand(SET_DIGITAL_BLOCK_CONTROL) //set digital block control
-		epd.sendData(SET_GATE_TIME)
+		// epd.sendCommand(SET_ANALOG_BLOCK_CONTROL) //set analog block control
+		// epd.sendData(0x54)
+		// epd.sendCommand(SET_DIGITAL_BLOCK_CONTROL) //set digital block control
+		// epd.sendData(SET_GATE_TIME)
 
 		epd.sendCommand(DRIVER_OUTPUT_CONTROL) //Driver output control
 		epd.sendData(0xF9)
@@ -250,62 +293,44 @@ func (epd *EPD) Configure(cfg Config) {
 		epd.sendData(0x00)
 
 		epd.sendCommand(DATA_ENTRY_MODE_SETTING) //data entry mode
-		epd.sendData(SET_GATE_TIME)
-
-		epd.sendCommand(SET_RAM_X_ADDRESS_START_END_POSITION) //set Ram-X address start/end position
-		epd.sendData(0x00)
-		epd.sendData(GATE_SCAN_START_POSITION) //0x0C-->(15+1)*8=128
-
-		epd.sendCommand(SET_RAM_Y_ADDRESS_START_END_POSITION) //set Ram-Y address start/end position
-		epd.sendData(0xF9)                                    //0xF9-->(249+1)=250
-		epd.sendData(0x00)
-		epd.sendData(0x00)
-		epd.sendData(0x00)
-
-		epd.sendCommand(BORDER_WAVEFORM_CONTROL) //BorderWavefrom
 		epd.sendData(0x03)
 
-		epd.sendCommand(WRITE_VCOM_REGISTER) //VCOM Voltage
-		epd.sendData(0x55)                   //
+		epd.setMemoryArea(0, 0, epd.width-1, epd.height-1)
+		epd.setMemoryPointer(0, 0)
 
-		epd.sendCommand(0x03)
-		epd.sendData(fullUpdateLut[70])
+		// epd.sendCommand(SET_RAM_X_ADDRESS_START_END_POSITION) //set Ram-X address start/end position
+		// epd.sendData(0x00)
+		// epd.sendData(GATE_SCAN_START_POSITION) //0x0C-->(15+1)*8=128
 
-		epd.sendCommand(0x04) //
-		epd.sendData(fullUpdateLut[71])
-		epd.sendData(fullUpdateLut[72])
-		epd.sendData(fullUpdateLut[73])
+		// epd.sendCommand(SET_RAM_Y_ADDRESS_START_END_POSITION) //set Ram-Y address start/end position
+		// epd.sendData(0xF9)                                    //0xF9-->(249+1)=250
+		// epd.sendData(0x00)
+		// epd.sendData(0x00)
+		// epd.sendData(0x00)
 
-		epd.sendCommand(SET_DUMMY_LINE_PERIOD) //Dummy Line
-		epd.sendData(fullUpdateLut[74])
-		epd.sendCommand(SET_GATE_TIME) //Gate time
-		epd.sendData(fullUpdateLut[75])
+		epd.sendCommand(BORDER_WAVEFORM_CONTROL) //BorderWavefrom
+		epd.sendData(0x05)
 
-		epd.sendCommand(WRITE_LUT_REGISTER)
-		for count := 0; count < 70; count++ {
-			epd.sendData(fullUpdateLut[count])
-		}
+		epd.sendCommand(DISPLAY_UPDATE_CONTROL_2) //VCOM Voltage
+		epd.sendData(0x00)                        //
+		epd.sendData(0x80)                        //
 
-		epd.sendCommand(SET_RAM_X_ADDRESS_COUNTER) // set RAM x address count to 0
-		epd.sendData(0x00)
-		epd.sendCommand(SET_RAM_Y_ADDRESS_COUNTER) // set RAM y address count to 0X127
-		epd.sendData(0xF9)
-		epd.sendData(0x00)
+		epd.sendCommand(0x18) //VCOM Voltage
+		epd.sendData(0x80)    //
+
 		epd.ReadBusy()
+
+		epd.setLut(fullUpdateLut)
 
 	} else {
 
-		epd.sendCommand(WRITE_VCOM_REGISTER) //VCOM Voltage
-		epd.sendData(0x26)
-
-		epd.ReadBusy()
-
-		epd.sendCommand(WRITE_LUT_REGISTER)
-		for count := 0; count < 70; count++ {
-			epd.sendData(partialUpdateLut[count])
-		}
+		epd.rst.Low()
+		time.Sleep(1 * time.Millisecond)
+		epd.rst.High()
+		epd.setLut(partialUpdateLut)
 
 		epd.sendCommand(0x37)
+		epd.sendData(0x00)
 		epd.sendData(0x00)
 		epd.sendData(0x00)
 		epd.sendData(0x00)
@@ -313,19 +338,33 @@ func (epd *EPD) Configure(cfg Config) {
 		epd.sendData(0x40)
 		epd.sendData(0x00)
 		epd.sendData(0x00)
+		epd.sendData(0x00)
+		epd.sendData(0x00)
+
+		epd.sendCommand(BORDER_WAVEFORM_CONTROL)
+		epd.sendData(0x80)
 
 		epd.sendCommand(DISPLAY_UPDATE_CONTROL_2)
 		epd.sendData(0xC0)
 		epd.sendCommand(MASTER_ACTIVATION)
 		epd.ReadBusy()
 
-		epd.sendCommand(BORDER_WAVEFORM_CONTROL) //BorderWavefrom
-		epd.sendData(0x01)
+		epd.setMemoryArea(0, 0, epd.width-1, epd.height-1)
+		epd.setMemoryPointer(0, 0)
 	}
 
 }
 
-// setMemoryArea sets the area of the display that will be updated
+/*
+function : Setting the display window
+setMemoryArea sets the area of the display that will be updated
+parameter:
+
+	xstart : X-axis starting position
+	ystart : Y-axis starting position
+	xend : End position of X-axis
+	yend : End position of Y-axis
+*/
 func (epd *EPD) setMemoryArea(x0 int16, y0 int16, x1 int16, y1 int16) {
 	epd.sendCommand(SET_RAM_X_ADDRESS_START_END_POSITION)
 	epd.sendData(uint8((x0 >> 3) & 0xFF))
@@ -340,11 +379,10 @@ func (epd *EPD) setMemoryArea(x0 int16, y0 int16, x1 int16, y1 int16) {
 // setMemoryPointer moves the internal pointer to the speficied coordinates
 func (epd *EPD) setMemoryPointer(x int16, y int16) {
 	epd.sendCommand(SET_RAM_X_ADDRESS_COUNTER)
-	epd.sendData(uint8((x >> 3) & 0xFF))
+	epd.sendData(uint8(x & 0xFF))
 	epd.sendCommand(SET_RAM_Y_ADDRESS_COUNTER)
 	epd.sendData(uint8(y & 0xFF))
 	epd.sendData(uint8((y >> 8) & 0xFF))
-	epd.ReadBusy()
 }
 func (epd *EPD) Draw(img *gg.Context) error {
 	// fmt.Println(img.Bounds())

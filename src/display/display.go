@@ -44,6 +44,8 @@ func init() {
 	rpio.SpiSpeed(4_000_000)
 	rpio.SpiMode(0, 0)
 
+	rpio.
+
 	rpio.Pin(RST_PIN).Mode(rpio.Output)
 	rpio.Pin(DC_PIN).Mode(rpio.Output)
 	rpio.Pin(CS_PIN).Mode(rpio.Output)
