@@ -46,6 +46,12 @@ func byteSliceToInt16Slice(data []byte) []int16 {
 }
 
 func int16SliceToSampleSlice(data []int16) []wav.Sample {
+
+	maxSamples := (450 * 1024) / (2) // Maximum number of samples that can fit within 450KB
+	if len(data) > maxSamples {
+		data = data[:maxSamples] // Truncate the data slice to the maximum allowed length
+	}
+
 	result := make([]wav.Sample, len(data))
 	for i, value := range data {
 		result[i] = wav.Sample{Values: [2]int{int(value) * 2, 0}}
