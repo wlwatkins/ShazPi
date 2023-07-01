@@ -351,7 +351,7 @@ func (epd *EPD) Configure(cfg Config) {
 		epd.rst.Low()
 		time.Sleep(1 * time.Millisecond)
 		epd.rst.High()
-		
+
 		epd.setLut(partialUpdateLut)
 
 		epd.sendCommand(0x37)
@@ -464,7 +464,11 @@ func (epd *EPD) Display(img *gg.Context) error {
 		}
 	}
 
-	epd.turnOnDisplay()
+	if epd.Update == FullUpdate {
+		epd.turnOnDisplay()
+	} else {
+		epd.turnOnDisplayPartialWait()
+	}
 	return nil
 }
 

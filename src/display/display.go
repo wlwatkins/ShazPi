@@ -29,6 +29,7 @@ func (d *Display) Initialise() {
 
 	d.epd = New(io.GetWritePin(io.RST_PIN), io.GetWritePin(io.DC_PIN), io.GetWritePin(io.CS_PIN), io.GetReadPin(io.BUSY_PIN), rpio.SpiTransmit)
 	config := Config{Rotation: ROTATION_0}
+	d.epd.Update = FullUpdate
 	d.epd.Configure(config)
 	d.width = float64(d.epd.height)
 	d.height = float64(d.epd.width)
@@ -107,6 +108,7 @@ func (d *Display) DrawWithDecoration() {
 
 func (d *Display) Clear() {
 	d.img.SetColor(color.White)
+	d.epd.Draw(d.img)
 	d.img.Clear()
 }
 
@@ -165,9 +167,12 @@ func run(commChannels *structs.CommChannels) {
 	display.Welcome()
 
 	display.loadAssets()
-	display.Idle()
 
 	display.ConnectIfNotconnect(commChannels)
+
+	display.epd.Update = PartialUpdate
+	config := Config{Rotation: ROTATION_0}
+	display.epd.Configure(config)
 	for {
 		select {
 		case <-commChannels.DisplayRecord:
