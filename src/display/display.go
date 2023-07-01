@@ -1,8 +1,8 @@
 package display
 
 import (
+	"fmt"
 	"image/color"
-	"log"
 	"net"
 	"shazammini/src/io"
 	"shazammini/src/structs"
@@ -142,6 +142,19 @@ func (d *Display) TryConnect() {
 
 }
 
+func (d *Display) ConnectIfNotconnect(commChannels *structs.CommChannels) {
+
+	for {
+		if !d.connected {
+			d.TryConnect()
+			time.Sleep(5 * time.Second)
+		} else {
+			commChannels.DisplayIdle <- true
+			return
+		}
+	}
+}
+
 func run(commChannels *structs.CommChannels) {
 
 	defer rpio.Close()
@@ -152,30 +165,33 @@ func run(commChannels *structs.CommChannels) {
 	display.Welcome()
 
 	display.loadAssets()
+	display.Idle()
 
+	display.ConnectIfNotconnect(commChannels)
 	for {
-		if display.connected {
+		select {
+		case <-commChannels.DisplayRecord:
+			display.Recording()
+		case <-commChannels.DisplayThinking:
+			display.Thinking()
+		case <-commChannels.DisplayIdle:
 			display.Idle()
-			select {
-			case <-commChannels.DisplayRecord:
-				display.Recording()
-			case <-commChannels.DisplayThinking:
-				display.Thinking()
-			case track := <-commChannels.DisplayResult:
-				log.Println(track.Artists)
-				// artist := "Unknown"
-				// if len(track.Artists) > 1 {
-				// 	artist = track.Artists[0].Name
-				// }
-				display.Result(track.Title, track.Subtitle)
+			fmt.Println("Idle")
+			commChannels.TouchEnabled <- true
+		case track := <-commChannels.DisplayResult:
+			fmt.Println(track.Artists)
 
-				// case <-time.After(5 * time.Second):
-				// 	display.CheckConnection()
+			artist := "Unknown"
+			if len(track.Title) > 1 {
+				artist = track.Title
 			}
-		} else {
-			display.TryConnect()
-			time.Sleep(5 * time.Second)
+			display.Result(artist, track.Subtitle)
+			time.Sleep(10 * time.Second)
+			commChannels.DisplayIdle <- true
+			// case <-time.After(5 * time.Second):
+			// 	display.CheckConnection()
 		}
+
 	}
 }
 

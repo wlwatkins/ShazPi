@@ -3,7 +3,6 @@ module shazammini
 go 1.20
 
 require (
-	github.com/d2r2/go-i2c v0.0.0-20191123181816-73a8a799d6bc
 	github.com/d2r2/go-logger v0.0.0-20210606094344-60e9d1233e22
 	github.com/fogleman/gg v1.3.0
 	github.com/gen2brain/malgo v0.11.10
@@ -13,6 +12,7 @@ require (
 	github.com/yelinaung/wifi-name v0.0.0-20181205043121-60d8acb81b8f
 	github.com/youpy/go-wav v0.3.2
 	gobot.io/x/gobot v1.16.0
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 )
 
 require (

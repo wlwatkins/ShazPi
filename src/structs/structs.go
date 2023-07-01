@@ -11,6 +11,8 @@ type CommChannels struct {
 	DisplayResult   chan Track
 	DisplayThinking chan bool
 	DisplayRecord   chan bool
+	TouchEnabled    chan bool
+	DisplayIdle     chan bool
 }
 
 type Match struct {

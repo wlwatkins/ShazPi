@@ -9,4 +9,4 @@
 cd /home/pi/dev
 
 # Run your program
-sudo /home/pi/dev/shaz
+sudo /home/pi/dev/ShazPi

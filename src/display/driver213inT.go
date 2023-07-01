@@ -186,6 +186,14 @@ func (epd *EPD) turnOnDisplayPartial() {
 	epd.sendCommand(DISPLAY_UPDATE_CONTROL_2)
 	epd.sendData(0x0C)
 	epd.sendCommand(MASTER_ACTIVATION)
+	// epd.ReadBusy()
+}
+
+// turnOnDisplay activates the display and renders the image that's there in the device's RAM
+func (epd *EPD) turnOnDisplayPartialWait() {
+	epd.sendCommand(DISPLAY_UPDATE_CONTROL_2)
+	epd.sendData(0x0C)
+	epd.sendCommand(MASTER_ACTIVATION)
 	epd.ReadBusy()
 }
 
@@ -230,6 +238,36 @@ func (epd *EPD) setLut(lut [159]uint8) {
 	epd.sendData(lut[157]) // VSL
 	epd.sendCommand(0x2c)  // VCOM
 	epd.sendData(lut[158])
+}
+
+/*
+function : Setting the display window
+setWindow sets the area of the display that will be updated
+parameter:
+
+	xstart : X-axis starting position
+	ystart : Y-axis starting position
+	xend : End position of X-axis
+	yend : End position of Y-axis
+*/
+func (epd *EPD) setWindow(x0 int16, y0 int16, x1 int16, y1 int16) {
+	epd.sendCommand(SET_RAM_X_ADDRESS_START_END_POSITION)
+	epd.sendData(uint8((x0 >> 3) & 0xFF))
+	epd.sendData(uint8((x1 >> 3) & 0xFF))
+	epd.sendCommand(SET_RAM_Y_ADDRESS_START_END_POSITION)
+	epd.sendData(uint8(y0 & 0xFF))
+	epd.sendData(uint8((y0 >> 8) & 0xFF))
+	epd.sendData(uint8(y1 & 0xFF))
+	epd.sendData(uint8((y1 >> 8) & 0xFF))
+}
+
+// setCursor moves the internal pointer to the speficied coordinates
+func (epd *EPD) setCursor(x int16, y int16) {
+	epd.sendCommand(SET_RAM_X_ADDRESS_COUNTER)
+	epd.sendData(uint8(x & 0xFF))
+	epd.sendCommand(SET_RAM_Y_ADDRESS_COUNTER)
+	epd.sendData(uint8(y & 0xFF))
+	epd.sendData(uint8((y >> 8) & 0xFF))
 }
 
 // mode sets the device's mode (based on the LookupTable)
@@ -281,8 +319,8 @@ func (epd *EPD) Configure(cfg Config) {
 		epd.sendCommand(DATA_ENTRY_MODE_SETTING) //data entry mode
 		epd.sendData(0x03)
 
-		epd.setMemoryArea(0, 0, epd.width-1, epd.height-1)
-		epd.setMemoryPointer(0, 0)
+		epd.setWindow(0, 0, epd.width-1, epd.height-1)
+		epd.setCursor(0, 0)
 
 		// epd.sendCommand(SET_RAM_X_ADDRESS_START_END_POSITION) //set Ram-X address start/end position
 		// epd.sendData(0x00)
@@ -297,7 +335,7 @@ func (epd *EPD) Configure(cfg Config) {
 		epd.sendCommand(BORDER_WAVEFORM_CONTROL) //BorderWavefrom
 		epd.sendData(0x05)
 
-		epd.sendCommand(DISPLAY_UPDATE_CONTROL_2) //VCOM Voltage
+		epd.sendCommand(DISPLAY_UPDATE_CONTROL_1) //VCOM Voltage
 		epd.sendData(0x00)                        //
 		epd.sendData(0x80)                        //
 
@@ -313,6 +351,7 @@ func (epd *EPD) Configure(cfg Config) {
 		epd.rst.Low()
 		time.Sleep(1 * time.Millisecond)
 		epd.rst.High()
+		
 		epd.setLut(partialUpdateLut)
 
 		epd.sendCommand(0x37)
@@ -335,41 +374,12 @@ func (epd *EPD) Configure(cfg Config) {
 		epd.sendCommand(MASTER_ACTIVATION)
 		epd.ReadBusy()
 
-		epd.setMemoryArea(0, 0, epd.width-1, epd.height-1)
-		epd.setMemoryPointer(0, 0)
+		epd.setWindow(0, 0, epd.width-1, epd.height-1)
+		epd.setCursor(0, 0)
 	}
 
 }
 
-/*
-function : Setting the display window
-setMemoryArea sets the area of the display that will be updated
-parameter:
-
-	xstart : X-axis starting position
-	ystart : Y-axis starting position
-	xend : End position of X-axis
-	yend : End position of Y-axis
-*/
-func (epd *EPD) setMemoryArea(x0 int16, y0 int16, x1 int16, y1 int16) {
-	epd.sendCommand(SET_RAM_X_ADDRESS_START_END_POSITION)
-	epd.sendData(uint8((x0 >> 3) & 0xFF))
-	epd.sendData(uint8((x1 >> 3) & 0xFF))
-	epd.sendCommand(SET_RAM_Y_ADDRESS_START_END_POSITION)
-	epd.sendData(uint8(y0 & 0xFF))
-	epd.sendData(uint8((y0 >> 8) & 0xFF))
-	epd.sendData(uint8(y1 & 0xFF))
-	epd.sendData(uint8((y1 >> 8) & 0xFF))
-}
-
-// setMemoryPointer moves the internal pointer to the speficied coordinates
-func (epd *EPD) setMemoryPointer(x int16, y int16) {
-	epd.sendCommand(SET_RAM_X_ADDRESS_COUNTER)
-	epd.sendData(uint8(x & 0xFF))
-	epd.sendCommand(SET_RAM_Y_ADDRESS_COUNTER)
-	epd.sendData(uint8(y & 0xFF))
-	epd.sendData(uint8((y >> 8) & 0xFF))
-}
 func (epd *EPD) Draw(img *gg.Context) error {
 	// fmt.Println(img.Bounds())
 	// for i := 0; i < int(img.Bounds().Max.Y); i++ {
@@ -437,9 +447,9 @@ func (epd *EPD) Display(img *gg.Context) error {
 	// 	}
 	// }
 
-	epd.setMemoryArea(0, 0, epd.logicalWidth-1, epd.height-1)
+	epd.setWindow(0, 0, epd.logicalWidth-1, epd.height-1)
 	for j := int16(0); j < epd.height; j++ {
-		epd.setMemoryPointer(0, j)
+		epd.setCursor(0, j)
 		epd.sendCommand(WRITE_RAM)
 		for i := int16(0); i < epd.logicalWidth; i += 8 {
 			var b = 0xFF
@@ -491,8 +501,8 @@ func (epd *EPD) ClearBuffer() {
 
 // ClearDisplay erases the device SRAM
 func (epd *EPD) ClearDisplay() {
-	epd.setMemoryArea(0, 0, epd.logicalWidth-1, epd.height-1)
-	epd.setMemoryPointer(0, 0)
+	epd.setWindow(0, 0, epd.logicalWidth-1, epd.height-1)
+	epd.setCursor(0, 0)
 	epd.sendCommand(WRITE_RAM)
 	for i := uint32(0); i < epd.bufferLength; i++ {
 		epd.sendData(0xFF)

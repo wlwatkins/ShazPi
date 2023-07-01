@@ -27,7 +27,7 @@ type WriteablePin interface {
 // ReadablePin is a GPIO pin through which the driver can read digital data
 type ReadablePin interface {
 	// Read reads from the pin and return the data as a byte
-	Read() uint8
+	Read() rpio.State
 }
 
 type ReadablePinPatch struct {
@@ -65,6 +65,7 @@ func New() {
 
 	rpio.Pin(PWR_PIN).High()
 	fmt.Println("Init done")
+
 }
 
 func Kill() {
@@ -77,7 +78,8 @@ func Kill() {
 }
 
 func GetReadPin(pin int) ReadablePin {
-	return ReadablePinPatch{rpio.Pin(pin)}
+	// return ReadablePinPatch{rpio.Pin(pin)}
+	return rpio.Pin(pin)
 }
 
 func GetWritePin(pin int) WriteablePin {

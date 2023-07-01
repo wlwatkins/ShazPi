@@ -4,8 +4,11 @@ import (
 
 	// "shazammini/src/microphone"
 
+	"shazammini/src/api"
 	"shazammini/src/commands"
+	"shazammini/src/display"
 	"shazammini/src/io"
+	"shazammini/src/microphone"
 	"shazammini/src/structs"
 	"time"
 
@@ -28,19 +31,21 @@ func main() {
 		DisplayResult:   make(chan structs.Track),
 		DisplayRecord:   make(chan bool),
 		DisplayThinking: make(chan bool),
+		TouchEnabled:    make(chan bool),
+		DisplayIdle:     make(chan bool, 10),
 	}
 
 	_ = commCahnnels
 
-	// dis := display.Screen(&commCahnnels)
-	// mic := microphone.Microphone(&commCahnnels)
 	com := commands.Commands(&commCahnnels)
-	// api := api.Api(&commCahnnels)
+	dis := display.Screen(&commCahnnels)
+	mic := microphone.Microphone(&commCahnnels)
+	api := api.Api(&commCahnnels)
 
-	// master.AddRobot(dis)
-	// master.AddRobot(api)
 	master.AddRobot(com)
-	// master.AddRobot(mic)
+	master.AddRobot(dis)
+	master.AddRobot(api)
+	master.AddRobot(mic)
 
 	master.Start()
 }
