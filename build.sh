@@ -40,22 +40,22 @@ else
 fi
 
 echo "Uploading to Raspberry Pi..."
-if ssh $TARGET_USER@$TARGET_HOST "[ ! -f $TARGET_DIR/$EXECUTABLE ]"; then
-  ssh $TARGET_USER@$TARGET_HOST "mkdir -p $TARGET_DIR/static"
-  check_exit_status
-  ssh $TARGET_USER@$TARGET_HOST "mkdir -p $TARGET_DIR/temp"
-  check_exit_status
-  scp $EXECUTABLE $TARGET_USER@$TARGET_HOST:$TARGET_DIR/$EXECUTABLE
-  check_exit_status
-  scp static/* $TARGET_USER@$TARGET_HOST:$TARGET_DIR/static/
-  check_exit_status
-  scp creds.toml $TARGET_USER@$TARGET_HOST:$TARGET_DIR/creds.toml
-  check_exit_status
-  scp launcher.sh $TARGET_USER@$TARGET_HOST:$TARGET_DIR/launcher.sh
-  check_exit_status
-else
-  echo "Skipping uploading as ShazPi executable already exists on remote server"
-fi
+# ssh $TARGET_USER@$TARGET_HOST "[ ! -f $TARGET_DIR/$EXECUTABLE ]"
+ssh $TARGET_USER@$TARGET_HOST "mkdir -p $TARGET_DIR/static"
+check_exit_status
+ssh $TARGET_USER@$TARGET_HOST "mkdir -p $TARGET_DIR/temp"
+check_exit_status
+scp $EXECUTABLE $TARGET_USER@$TARGET_HOST:$TARGET_DIR/$EXECUTABLE
+check_exit_status
+scp static/* $TARGET_USER@$TARGET_HOST:$TARGET_DIR/static/
+check_exit_status
+scp creds.toml $TARGET_USER@$TARGET_HOST:$TARGET_DIR/creds.toml
+check_exit_status
+scp launcher.sh $TARGET_USER@$TARGET_HOST:$TARGET_DIR/launcher.sh
+check_exit_status
+# else
+#   echo "Skipping uploading as ShazPi executable already exists on remote server"
+# fi
 
 # Function to ask the yes or no question
 ask_question() {
@@ -79,11 +79,11 @@ ask_question() {
     done
 }
 
-if ask_question "Do you want to reboot the Pi?"; then
-  echo "Rebooting the Pi..."
-  ssh $TARGET_USER@$TARGET_HOST "sudo reboot"
-  check_exit_status
-fi
+# if ask_question "Do you want to reboot the Pi?"; then
+#   echo "Rebooting the Pi..."
+#   ssh $TARGET_USER@$TARGET_HOST "sudo reboot"
+#   check_exit_status
+# fi
 echo "Done"
 
 

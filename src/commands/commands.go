@@ -1,33 +1,36 @@
 package commands
 
 import (
+	"fmt"
 	"shazammini/src/structs"
-	"time"
 
 	"gobot.io/x/gobot"
 )
 
 func run(commChannels *structs.CommChannels) {
 
-	gt := GT1151{
-		TRST: 22,
-		INT:  27,
-	}
-	gt.GT_Init()
+	gt := GT1151{}
+	gt.New()
+	defer gt.Kill()
 
-	GT_Dev := GT_Development{}
-	GT_Old := GT_Development{}
+	GT_Dev := Development{}
+	GT_Old := Development{}
+
+	GT_Dev.Init()
+	GT_Old.Init()
 
 	for {
-		gt.GT_Scan(&GT_Dev, &GT_Old)
+
+		gt.Scan(&GT_Dev, &GT_Old)
+		// fmt.Println(GT_Dev.X, GT_Dev.Y, GT_Dev.S)
 		if GT_Old.X[0] == GT_Dev.X[0] && GT_Old.Y[0] == GT_Dev.Y[0] && GT_Old.S[0] == GT_Dev.S[0] {
-			time.Sleep(20 * time.Millisecond)
+			// time.Sleep(20 * time.Millisecond)
 			continue
 		}
 
-		if GT_Dev.TouchpointFlag {
+		if GT_Dev.TouchpointFlag > 0 {
 			GT_Dev.TouchpointFlag = 0
-
+			fmt.Println(GT_Dev)
 		}
 
 		// var input string

@@ -1,10 +1,10 @@
 package display
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"net"
+	"shazammini/src/io"
 	"shazammini/src/structs"
 	"time"
 
@@ -14,46 +14,7 @@ import (
 	"gobot.io/x/gobot"
 )
 
-type ReadablePinPatch struct {
-	rpio.Pin
-}
-
-func (pin ReadablePinPatch) Read() uint8 {
-	return uint8(pin.Pin.Read())
-}
-
-const RST_PIN = 17
-const DC_PIN = 25
-const CS_PIN = 8
-const BUSY_PIN = 24
-const PWR_PIN = 18
 const PI = 3.1416
-
-func init() {
-	//start the GPIO controller
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to start gpio: %v", err)
-	}
-
-	// Enable SPI on SPI0
-	if err := rpio.SpiBegin(rpio.Spi0); err != nil {
-		log.Fatalf("failed to enable SPI: %v", err)
-	}
-
-	// configure SPI settings
-	rpio.SpiSpeed(4_000_000)
-	rpio.SpiMode(0, 0)
-
-	rpio.
-
-	rpio.Pin(RST_PIN).Mode(rpio.Output)
-	rpio.Pin(DC_PIN).Mode(rpio.Output)
-	rpio.Pin(CS_PIN).Mode(rpio.Output)
-	rpio.Pin(BUSY_PIN).Mode(rpio.Input)
-	rpio.Pin(PWR_PIN).Mode(rpio.Output)
-	rpio.Pin(PWR_PIN).High()
-	fmt.Println("Init done")
-}
 
 type Display struct {
 	epd       *EPD
@@ -66,7 +27,7 @@ type Display struct {
 
 func (d *Display) Initialise() {
 
-	d.epd = New(rpio.Pin(RST_PIN), rpio.Pin(DC_PIN), rpio.Pin(CS_PIN), ReadablePinPatch{rpio.Pin(BUSY_PIN)}, rpio.SpiTransmit)
+	d.epd = New(io.GetWritePin(io.RST_PIN), io.GetWritePin(io.DC_PIN), io.GetWritePin(io.CS_PIN), io.GetReadPin(io.BUSY_PIN), rpio.SpiTransmit)
 	config := Config{Rotation: ROTATION_0}
 	d.epd.Configure(config)
 	d.width = float64(d.epd.height)

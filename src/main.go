@@ -4,19 +4,21 @@ import (
 
 	// "shazammini/src/microphone"
 
-	"log"
-	"shazammini/src/api"
 	"shazammini/src/commands"
-	"shazammini/src/display"
-	"shazammini/src/microphone"
+	"shazammini/src/io"
 	"shazammini/src/structs"
 	"time"
 
+	"github.com/d2r2/go-logger"
 	"gobot.io/x/gobot"
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	// log.SetFlags(log.LstdFlags | log.Lshortfile)
+	logger.ChangePackageLogLevel("i2c", logger.InfoLevel)
+	io.New()
+	defer io.Kill()
+
 	master := gobot.NewMaster()
 
 	commCahnnels := structs.CommChannels{
@@ -28,15 +30,17 @@ func main() {
 		DisplayThinking: make(chan bool),
 	}
 
-	dis := display.Screen(&commCahnnels)
-	mic := microphone.Microphone(&commCahnnels)
-	com := commands.Commands(&commCahnnels)
-	api := api.Api(&commCahnnels)
+	_ = commCahnnels
 
-	master.AddRobot(dis)
-	master.AddRobot(api)
+	// dis := display.Screen(&commCahnnels)
+	// mic := microphone.Microphone(&commCahnnels)
+	com := commands.Commands(&commCahnnels)
+	// api := api.Api(&commCahnnels)
+
+	// master.AddRobot(dis)
+	// master.AddRobot(api)
 	master.AddRobot(com)
-	master.AddRobot(mic)
+	// master.AddRobot(mic)
 
 	master.Start()
 }

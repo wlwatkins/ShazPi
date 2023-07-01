@@ -5,6 +5,7 @@ import (
 	"errors"
 	"image/color"
 	"math"
+	"shazammini/src/io"
 	"time"
 
 	"github.com/fogleman/gg"
@@ -54,21 +55,6 @@ type Config struct {
 	Height       int16
 	LogicalWidth int16    // LogicalWidth must be a multiple of 8 and same size or bigger than Width
 	Rotation     Rotation // Rotation is clock-wise
-}
-
-// WriteablePin is a GPIO pin through which the driver can write digital data
-type WriteablePin interface {
-	// High sets the pins output to digital high
-	High()
-
-	// Low sets the pins output to digital low
-	Low()
-}
-
-// ReadablePin is a GPIO pin through which the driver can read digital data
-type ReadablePin interface {
-	// Read reads from the pin and return the data as a byte
-	Read() uint8
 }
 
 // Transmit is a function that sends the data payload across to the device via the SPI line
@@ -124,10 +110,10 @@ var partialUpdateLut = [159]uint8{
 // EPD defines the base type for the e-paper display driver
 type EPD struct {
 	// pins used by this driver
-	rst  WriteablePin // for reset signal
-	dc   WriteablePin // for data/command select signal; D=HIGH C=LOW
-	cs   WriteablePin // for chip select signal; this pin is active low
-	busy ReadablePin  // for reading in busy signal
+	rst  io.WriteablePin // for reset signal
+	dc   io.WriteablePin // for data/command select signal; D=HIGH C=LOW
+	cs   io.WriteablePin // for chip select signal; this pin is active low
+	busy io.ReadablePin  // for reading in busy signal
 
 	// SPI transmitter
 	transmit Transmit
@@ -143,7 +129,7 @@ type EPD struct {
 }
 
 // New creates a new EPD device driver
-func New(rst, dc, cs WriteablePin, busy ReadablePin, transmit Transmit) *EPD {
+func New(rst, dc, cs io.WriteablePin, busy io.ReadablePin, transmit Transmit) *EPD {
 	return &EPD{
 		rst:      rst,
 		dc:       dc,
